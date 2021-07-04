@@ -8,8 +8,10 @@
     "dependencies": {
         "direct": {
             "elm/core": "1.0.5",
+            "elm-community/list-extra": "8.3.1",
             "jfmengels/elm-review": "2.4.2",
-            "stil4m/elm-syntax": "7.2.5"
+            "stil4m/elm-syntax": "7.2.5",
+            "turboMaCk/non-empty-list-alias": "1.1.0"
         },
         "indirect": {
             "elm/html": "1.0.0",
@@ -19,7 +21,6 @@
             "elm/random": "1.0.0",
             "elm/time": "1.0.0",
             "elm/virtual-dom": "1.0.2",
-            "elm-community/list-extra": "8.3.1",
             "elm-explorations/test": "1.2.2",
             "miniBill/elm-unicode": "1.0.2",
             "rtfeldman/elm-hex": "1.0.0",

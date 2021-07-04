@@ -11,15 +11,13 @@ when inside the directory containing this file.
 
 -}
 
-import Every.SingleUse.TypedVar.Has.Suffix_
-import No.MultiUse.TypeVar.Has.Suffix_
-import Only.Every.SingleUse.TypeVar.Has.Suffix_
+import No.MultiUseTypeVars.EndWith_
+import SingleUseTypeVars.EndWith_
 import Review.Rule exposing (Rule)
 
 
 config : List Rule
 config =
-    [ Only.Every.SingleUse.TypeVar.Has.Suffix_.rule
-    , No.MultiUse.TypeVar.Has.Suffix_.rule
-    , Every.SingleUse.TypedVar.Has.Suffix_.rule
+    [ No.MultiUseTypeVars.EndWith_.rule
+    , SingleUseTypeVars.EndWith_.rule
     ]
