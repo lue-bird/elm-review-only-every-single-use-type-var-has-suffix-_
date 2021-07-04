@@ -11,6 +11,7 @@ import Elm.Syntax.Declaration exposing (Declaration)
 import Elm.Syntax.Expression exposing (Expression)
 import Elm.Syntax.Node as Node exposing (Node)
 import Elm.Syntax.Range exposing (Range)
+import Review.Fix as Fix
 import Review.Rule as Rule exposing (Rule)
 
 
@@ -52,16 +53,24 @@ rule =
 
 declarationVisitor : Node Declaration -> List (Rule.Error {})
 declarationVisitor declaration =
-    collectTypeVarsFromDeclaration declaration
+    let
+        typeVars =
+            collectTypeVarsFromDeclaration declaration
+    in
+    typeVars
         |> groupedTypeVarsThatEndWith_
-        |> List.map toError
+        |> List.map (toError typeVars)
 
 
 expressionVisitor : Node Expression -> List (Rule.Error {})
 expressionVisitor expression =
-    collectTypeVarsFromExpression expression
+    let
+        typeVars =
+            collectTypeVarsFromExpression expression
+    in
+    typeVars
         |> groupedTypeVarsThatEndWith_
-        |> List.map toError
+        |> List.map (toError typeVars)
 
 
 groupedTypeVarsThatEndWith_ :
@@ -75,14 +84,57 @@ groupedTypeVarsThatEndWith_ typeVars =
             (\{ length } -> length >= 2)
 
 
-toError : { typeVarName : String, range : Range } -> Rule.Error {}
-toError { typeVarName, range } =
-    Rule.error
+toError :
+    List (Node String)
+    -> { typeVarName : String, range : Range }
+    -> Rule.Error {}
+toError typeVars { typeVarName, range } =
+    let
+        typeVarNameWithout_AleadyExist =
+            typeVars
+                |> List.map Node.value
+                |> List.member (typeVarName ++ "_")
+    in
+    Rule.errorWithFix
         { message =
             "The type variable "
                 ++ typeVarName
                 ++ " is used in multiple places,"
                 ++ " despite being marked as single-use with the -_ suffix."
-        , details = [ "Rename one of them or remove the -_ suffix." ]
+        , details =
+            "Rename one of them if this was an accident."
+                :: [ [ "If it wasn't an accident, "
+                     , if typeVarNameWithout_AleadyExist then
+                        [ "choose a different name ("
+                        , typeVarName |> String.dropRight 1
+                        , " already exists)."
+                        ]
+                            |> String.concat
+
+                       else
+                        "remove the -_ suffix (there's a fix available for that)."
+                     ]
+                        |> String.concat
+                   ]
         }
         range
+        (if typeVarNameWithout_AleadyExist then
+            []
+
+         else
+            typeVars
+                |> List.map
+                    (\typeVar ->
+                        let
+                            { start, end } =
+                                Node.range typeVar
+
+                            locationOf_ =
+                                { row = end.row
+                                , column = end.column - 1
+                                }
+                        in
+                        Fix.removeRange
+                            { start = locationOf_, end = end }
+                    )
+        )

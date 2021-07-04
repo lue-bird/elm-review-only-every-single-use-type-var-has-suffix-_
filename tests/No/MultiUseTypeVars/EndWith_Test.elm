@@ -22,6 +22,12 @@ a = a
                             { typeVar = "a_"
                             , under = "a_ -> a_"
                             }
+                            |> Review.Test.whenFixed """
+module A exposing (..)
+
+a : a -> a
+a = a
+"""
                         ]
             )
         , test "error in typed"
@@ -38,6 +44,12 @@ a = a
                             { typeVar = "a_"
                             , under = "a_) a_"
                             }
+                            |> Review.Test.whenFixed """
+module A exposing (..)
+
+a : Result (Maybe a) a
+a = a
+"""
                         ]
             )
         , test "error in record"
@@ -54,6 +66,12 @@ a = a
                             { typeVar = "a_"
                             , under = "a_, b : a_"
                             }
+                            |> Review.Test.whenFixed """
+module A exposing (..)
+
+a : { a : a, b : a }
+a = a
+"""
                         ]
             )
         , test "error in tuple"
@@ -70,6 +88,12 @@ a = a
                             { typeVar = "a_"
                             , under = "a_, a_"
                             }
+                            |> Review.Test.whenFixed """
+module A exposing (..)
+
+a : ( a, a )
+a = a
+"""
                         ]
             )
         , test "error in let"
@@ -91,6 +115,15 @@ a =
                             { typeVar = "c_"
                             , under = "c_, c_"
                             }
+                            |> Review.Test.whenFixed """
+a : ()
+a =
+    let
+        b : ( c, c )
+        b = b
+    in
+    ()
+"""
                         ]
             )
         , test "error in type"
@@ -106,6 +139,11 @@ type A a_ = A a_
                             { typeVar = "a"
                             , under = "a"
                             }
+                            |> Review.Test.whenFixed """
+module A exposing (..)
+
+type A a = A a
+"""
                         ]
             )
         ]
