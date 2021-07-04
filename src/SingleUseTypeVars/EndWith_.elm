@@ -109,7 +109,7 @@ toError typeVars { typeVarName, range } =
                     |> String.concat
 
               else
-                "Add the -_ suffix."
+                "Add the -_ suffix (there's a fix available for that)."
             ]
         }
         range
