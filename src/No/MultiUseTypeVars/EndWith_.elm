@@ -6,45 +6,83 @@ module No.MultiUseTypeVars.EndWith_ exposing (rule)
 
 -}
 
+import Common exposing (collectTypeVarsFromDeclaration, collectTypeVarsFromExpression, groupTypeVars)
+import Elm.Syntax.Declaration exposing (Declaration)
+import Elm.Syntax.Expression exposing (Expression)
+import Elm.Syntax.Node as Node exposing (Node)
+import Elm.Syntax.Range exposing (Range)
 import Review.Rule as Rule exposing (Rule)
 
 
-{-| Reports... REPLACEME
+{-| Reports multi-use type variables that have a -\_ suffix.
 
     config =
-        [ No.MultiUse.TypeVar.Has.Suffix_.rule
+        [ No.MultiUseTypeVars.EndWith_.rule
         ]
 
 
-## Fail
+### Fail
 
-    a =
-        "REPLACEME example to replace"
+    a : a_ -> a_
 
-
-## Success
-
-    a =
-        "REPLACEME example to replace"
+    type Id value_
+        = Id value_
 
 
-## When (not) to enable this rule
+### Success
 
-This rule is useful when REPLACEME.
-This rule is not useful when REPLACEME.
+    a : a -> a
+
+    type Id value
+        = Id value
 
 
-## Try it out
+## Don't use this
 
-You can try this rule out by running the following command:
-
-```bash
-elm-review --template lue-bird/elm-review-highlight-single-use-type-vars/example --rules No.MultiUse.TypeVar.Has.Suffix_
-```
+When you already use the -\_ suffix in (multi-use) type variables.
 
 -}
 rule : Rule
 rule =
-    Rule.newModuleRuleSchema "No.MultiUse.TypeVar.Has.Suffix_" ()
-        -- Add your visitors
+    Rule.newModuleRuleSchema "No.MultiUseTypeVars.EndWith_" ()
+        |> Rule.withSimpleDeclarationVisitor declarationVisitor
+        |> Rule.withSimpleExpressionVisitor expressionVisitor
         |> Rule.fromModuleRuleSchema
+
+
+declarationVisitor : Node Declaration -> List (Rule.Error {})
+declarationVisitor declaration =
+    collectTypeVarsFromDeclaration declaration
+        |> groupedTypeVarsThatEndWith_
+        |> List.map toError
+
+
+expressionVisitor : Node Expression -> List (Rule.Error {})
+expressionVisitor expression =
+    collectTypeVarsFromExpression expression
+        |> groupedTypeVarsThatEndWith_
+        |> List.map toError
+
+
+groupedTypeVarsThatEndWith_ :
+    List (Node String)
+    -> List { typeVarName : String, range : Range }
+groupedTypeVarsThatEndWith_ typeVars =
+    typeVars
+        |> List.filter
+            (Node.value >> String.endsWith "_")
+        |> groupTypeVars
+            (\{ length } -> length >= 2)
+
+
+toError : { typeVarName : String, range : Range } -> Rule.Error {}
+toError { typeVarName, range } =
+    Rule.error
+        { message =
+            "The type variable "
+                ++ typeVarName
+                ++ " is used in multiple places,"
+                ++ " despite being marked as single-use with the -_ suffix."
+        , details = [ "Rename one of them or remove the -_ suffix." ]
+        }
+        range

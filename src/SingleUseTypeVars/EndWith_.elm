@@ -6,45 +6,116 @@ module SingleUseTypeVars.EndWith_ exposing (rule)
 
 -}
 
+import Common exposing (collectTypeVarsFromDeclaration, collectTypeVarsFromExpression, groupTypeVars)
+import Elm.Syntax.Declaration exposing (Declaration)
+import Elm.Syntax.Expression exposing (Expression)
+import Elm.Syntax.Node as Node exposing (Node)
+import Elm.Syntax.Range exposing (Range)
+import Review.Fix as Fix
 import Review.Rule as Rule exposing (Rule)
 
 
-{-| Reports... REPLACEME
+{-| Reports single-use type variables that don't have a -\_ suffix.
 
     config =
-        [ Every.SingleUse.TypedVar.Has.Suffix_.rule
+        [ SingleUseTypeVars.EndWith_.rule
         ]
 
 
-## Fail
+### Fail
 
-    a =
-        "REPLACEME example to replace"
+    a : a
 
-
-## Success
-
-    a =
-        "REPLACEME example to replace"
+    type Id phantomTag
+        = Id Int
 
 
-## When (not) to enable this rule
+### Success
 
-This rule is useful when REPLACEME.
-This rule is not useful when REPLACEME.
+    a : a_
+
+    type Id phantomTag_
+        = Id Int
 
 
-## Try it out
+## Don't use this
 
-You can try this rule out by running the following command:
-
-```bash
-elm-review --template lue-bird/elm-review-highlight-single-use-type-vars/example --rules Every.SingleUse.TypedVar.Has.Suffix_
-```
+When you already use the -\_ suffix in (multi-use) type variables.
 
 -}
 rule : Rule
 rule =
-    Rule.newModuleRuleSchema "Every.SingleUse.TypedVar.Has.Suffix_" ()
-        -- Add your visitors
+    Rule.newModuleRuleSchema "SingleUseTypeVars.EndWith_" ()
+        |> Rule.withSimpleDeclarationVisitor declarationVisitor
+        |> Rule.withSimpleExpressionVisitor expressionVisitor
         |> Rule.fromModuleRuleSchema
+
+
+declarationVisitor : Node Declaration -> List (Rule.Error {})
+declarationVisitor declaration =
+    let
+        typeVars =
+            collectTypeVarsFromDeclaration declaration
+    in
+    typeVars
+        |> groupedTypeVarsThatEndWith_
+        |> List.map (toError typeVars)
+
+
+expressionVisitor : Node Expression -> List (Rule.Error {})
+expressionVisitor expression =
+    let
+        typeVars =
+            collectTypeVarsFromExpression expression
+    in
+    typeVars
+        |> groupedTypeVarsThatEndWith_
+        |> List.map (toError typeVars)
+
+
+groupedTypeVarsThatEndWith_ :
+    List (Node String)
+    -> List { typeVarName : String, range : Range }
+groupedTypeVarsThatEndWith_ typeVars =
+    typeVars
+        |> List.filter
+            (Node.value >> (not << String.endsWith "_"))
+        |> groupTypeVars (.length >> (==) 1)
+
+
+toError :
+    List (Node String)
+    -> { typeVarName : String, range : Range }
+    -> Rule.Error {}
+toError typeVars { typeVarName, range } =
+    let
+        typeVarName_AleadyExist =
+            typeVars
+                |> List.map Node.value
+                |> List.member (typeVarName ++ "_")
+    in
+    Rule.errorWithFix
+        { message =
+            "The type variable "
+                ++ typeVarName
+                ++ " isn't marked as single-use with a -_ suffix."
+        , details =
+            [ if typeVarName_AleadyExist then
+                [ "Choose a different name ("
+                , typeVarName
+                , "_ already exists)."
+                , " Then add the -_ suffix."
+                ]
+                    |> String.concat
+
+              else
+                "Add the -_ suffix."
+            ]
+        }
+        range
+        (if typeVarName_AleadyExist then
+            []
+
+         else
+            [ Fix.insertAt range.end "_" ]
+        )
