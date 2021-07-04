@@ -93,6 +93,21 @@ a =
                             }
                         ]
             )
+        , test "error in type"
+            (\() ->
+                """
+module A exposing (..)
+
+type A a_ = A a_
+"""
+                    |> Review.Test.run rule
+                    |> Review.Test.expectErrors
+                        [ error
+                            { typeVar = "a"
+                            , under = "a"
+                            }
+                        ]
+            )
         ]
 
 
