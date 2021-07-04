@@ -116,6 +116,8 @@ a =
                             , under = "c_, c_"
                             }
                             |> Review.Test.whenFixed """
+module A exposing (..)
+
 a : ()
 a =
     let
@@ -126,7 +128,7 @@ a =
 """
                         ]
             )
-        , test "error in type"
+        , test "error in custom type"
             (\() ->
                 """
 module A exposing (..)
@@ -136,13 +138,35 @@ type A a_ = A a_
                     |> Review.Test.run rule
                     |> Review.Test.expectErrors
                         [ error
-                            { typeVar = "a"
-                            , under = "a"
+                            { typeVar = "a_"
+                            , under = "a_ = A a_"
                             }
                             |> Review.Test.whenFixed """
 module A exposing (..)
 
 type A a = A a
+"""
+                        ]
+            )
+        , test "error in complex type"
+            (\() ->
+                """
+module A exposing (..)
+
+a : Result ({ a_ | field : Arr (In a_ Never) () }) -> ( Float, a_, Int )
+a = a
+"""
+                    |> Review.Test.run rule
+                    |> Review.Test.expectErrors
+                        [ error
+                            { typeVar = "a_"
+                            , under = "a_ | field : Arr (In a_ Never) () }) -> ( Float, a_"
+                            }
+                            |> Review.Test.whenFixed """
+module A exposing (..)
+
+a : Result ({ a | field : Arr (In a Never) () }) -> ( Float, a, Int )
+a = a
 """
                         ]
             )
@@ -159,6 +183,12 @@ error { typeVar, under } =
                 ++ typeVar
                 ++ " is used in multiple places,"
                 ++ " despite being marked as single-use with the -_ suffix."
-        , details = [ "Rename one of them or remove the -_ suffix." ]
+        , details =
+            [ "Rename one of them if this was an accident. "
+            , [ "If it wasn't an accident, "
+              , "remove the -_ suffix (there's a fix available for that)."
+              ]
+                |> String.concat
+            ]
         , under = under
         }

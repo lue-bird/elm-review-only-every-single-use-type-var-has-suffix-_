@@ -62,7 +62,7 @@ a =
 """
                         ]
             )
-        , test "error in type"
+        , test "error in custom type"
             (\() ->
                 """
 module A exposing (..)
@@ -82,6 +82,28 @@ type A a_ = A
 """
                         ]
             )
+        , test "error in complex type"
+            (\() ->
+                """
+module A exposing (..)
+
+a : Result ({ rec | field : Arr (In Char Never) () }) -> String
+a = a
+"""
+                    |> Review.Test.run rule
+                    |> Review.Test.expectErrors
+                        [ error
+                            { typeVar = "rec"
+                            , under = "rec"
+                            }
+                            |> Review.Test.whenFixed """
+module A exposing (..)
+
+a : Result ({ rec_ | field : Arr (In Char Never) () }) -> String
+a = a
+"""
+                        ]
+            )
         ]
 
 
@@ -91,9 +113,11 @@ error :
 error { typeVar, under } =
     Review.Test.error
         { message =
-            "The type variable "
-                ++ typeVar
-                ++ " isn't marked as single-use with a -_ suffix."
-        , details = [ "Add the -_ suffix." ]
+            [ "The type variable "
+            , typeVar
+            , " isn't marked as single-use with a -_ suffix."
+            ]
+                |> String.concat
+        , details = [ "Add the -_ suffix (there's a fix available for that)." ]
         , under = under
         }
