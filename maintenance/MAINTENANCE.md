@@ -18,14 +18,13 @@ You can read how to use `elm-review`'s API to write a rule [here](https://packag
 
 I highly recommend writing rules in a test-driven manner (TDD), because the tests you write will dramatically increase the quality of the rule, and because they will make the development quite easy. You can read more about it [here](https://package.elm-lang.org/packages/jfmengels/elm-review/latest/Review-Test).
 
-If you want to preview the documentation of the package, you can run `npm run preview-docs`, which will run a local version of [`elm-doc-preview`](https://elm-doc-preview.netlify.app/). If you see `docs.json` in your project, please commit it. This will allow you to share the latest version of the docs with collaborators using the online version of [`elm-doc-preview`](https://elm-doc-preview.netlify.app/).
+If you want to preview the documentation of the package, you can run `npm run preview-docs`, which will run a local version of [`elm-doc-preview`](https://elm-doc-preview.netlify.app/).
 
 ### Adding a new rule
 
 It is better if rule packages contain multiple rules dealing with the same or similar concerns, rather than a single rule. Therefore, you will likely add a new rule to the package at one point.
 
 To do so, I recommend using the `elm-review new-rule` command. This will prompt you for the name of the rule, and then create a source file and a test file, and update the `elm.json` and the `README.md`, and insert the rule into the preview configurations.
-
 
 ## Example and preview configurations
 
