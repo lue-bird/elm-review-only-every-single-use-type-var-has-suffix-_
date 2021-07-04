@@ -97,10 +97,12 @@ toError typeVars { typeVarName, range } =
     in
     Rule.errorWithFix
         { message =
-            "The type variable "
-                ++ typeVarName
-                ++ " is used in multiple places,"
-                ++ " despite being marked as single-use with the -_ suffix."
+            [ "The type variable "
+            , typeVarName
+            , " is used in multiple places,"
+            , " despite being marked as single-use with the -_ suffix."
+            ]
+                |> String.concat
         , details =
             [ "Rename one of them if this was an accident. "
             , [ "If it wasn't an accident, "
