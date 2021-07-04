@@ -8,8 +8,6 @@
 ## you
 
 - share your thoughts
-- add operations that might be useful
-    - `Array` has no native sort function. If you find a good way, please add it through a PR
 
 ### guide
 
