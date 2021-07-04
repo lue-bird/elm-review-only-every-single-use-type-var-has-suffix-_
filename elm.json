@@ -1,7 +1,7 @@
 {
     "type": "package",
-    "name": "lue-bird/elm-review-highlight-single-use-type-vars",
-    "summary": "review rules to make sure single-use type variables end with _",
+    "name": "lue-bird/elm-review-single-use-type-vars-end-with-underscore",
+    "summary": "make sure variables only used once end with _",
     "license": "MIT",
     "version": "1.0.0",
     "exposed-modules": [
@@ -11,8 +11,10 @@
     "elm-version": "0.19.0 <= v < 0.20.0",
     "dependencies": {
         "elm/core": "1.0.5 <= v < 2.0.0",
+        "elm-community/list-extra": "8.3.1 <= v < 9.0.0",
         "jfmengels/elm-review": "2.4.0 <= v < 3.0.0",
-        "stil4m/elm-syntax": "7.2.1 <= v < 8.0.0"
+        "stil4m/elm-syntax": "7.2.1 <= v < 8.0.0",
+        "turboMaCk/non-empty-list-alias": "1.1.0 <= v < 2.0.0"
     },
     "test-dependencies": {
         "elm-explorations/test": "1.2.2 <= v < 2.0.0"
