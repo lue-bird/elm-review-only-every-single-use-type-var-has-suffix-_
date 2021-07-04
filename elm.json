@@ -5,9 +5,8 @@
     "license": "MIT",
     "version": "1.0.0",
     "exposed-modules": [
-        "Every.SingleUse.TypedVar.Has.Suffix_",
-        "No.MultiUse.TypeVar.Has.Suffix_",
-        "Only.Every.SingleUse.TypeVar.Has.Suffix_"
+        "Every.SingleUse.TypedVar.HasSuffix_",
+        "No.MultiUse.TypeVar.HasSuffix_"
     ],
     "elm-version": "0.19.0 <= v < 0.20.0",
     "dependencies": {
