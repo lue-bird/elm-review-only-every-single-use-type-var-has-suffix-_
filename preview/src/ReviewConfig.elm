@@ -11,13 +11,13 @@ when inside the directory containing this file.
 
 -}
 
-import No.MultiUseTypeVars.EndWith_
-import SingleUseTypeVars.EndWith_
+import NoMultiUseTypeVarsEndWith_
+import SingleUseTypeVarsEndWith_
 import Review.Rule exposing (Rule)
 
 
 config : List Rule
 config =
-    [ No.MultiUseTypeVars.EndWith_.rule
-    , SingleUseTypeVars.EndWith_.rule
+    [ NoMultiUseTypeVarsEndWith_.rule
+    , SingleUseTypeVarsEndWith_.rule
     ]

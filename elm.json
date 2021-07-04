@@ -5,8 +5,8 @@
     "license": "MIT",
     "version": "1.0.0",
     "exposed-modules": [
-        "SingleUseTypedVars.EndWith_",
-        "No.MultiUseTypeVars.EndWith_"
+        "SingleUseTypeVarsEndWith_",
+        "NoMultiUseTypeVarsEndWith_"
     ],
     "elm-version": "0.19.0 <= v < 0.20.0",
     "dependencies": {

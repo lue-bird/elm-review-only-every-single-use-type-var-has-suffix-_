@@ -1,13 +1,13 @@
-module No.MultiUseTypeVars.EndWith_Test exposing (all)
+module NoMultiUseTypeVarsEndWith_Test exposing (all)
 
-import No.MultiUseTypeVars.EndWith_ exposing (rule)
+import NoMultiUseTypeVarsEndWith_ exposing (rule)
 import Review.Test
 import Test exposing (Test, describe, test)
 
 
 all : Test
 all =
-    describe "No.MultiUseTypeVars.EndWith_"
+    describe "NoMultiUseTypeVarsEndWith_"
         [ test "error in function"
             (\() ->
                 """

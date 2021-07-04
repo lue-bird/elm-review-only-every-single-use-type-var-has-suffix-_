@@ -1,13 +1,13 @@
-module SingleUseTypeVars.EndWith_Test exposing (all)
+module SingleUseTypeVarsEndWith_Test exposing (all)
 
 import Review.Test
-import SingleUseTypeVars.EndWith_ exposing (rule)
+import SingleUseTypeVarsEndWith_ exposing (rule)
 import Test exposing (Test, describe, test)
 
 
 all : Test
 all =
-    describe "SingleUseTypeVars.EndWith_"
+    describe "SingleUseTypeVarsEndWith_"
         [ test "error in function"
             (\() ->
                 """

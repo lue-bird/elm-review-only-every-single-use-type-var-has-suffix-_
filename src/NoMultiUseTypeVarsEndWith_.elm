@@ -1,4 +1,4 @@
-module SingleUseTypeVars.EndWith_ exposing (rule)
+module NoMultiUseTypeVarsEndWith_ exposing (rule)
 
 {-|
 
@@ -15,27 +15,27 @@ import Review.Fix as Fix
 import Review.Rule as Rule exposing (Rule)
 
 
-{-| Reports single-use type variables that don't have a -\_ suffix.
+{-| Reports multi-use type variables that have a -\_ suffix.
 
     config =
-        [ SingleUseTypeVars.EndWith_.rule
+        [ NoMultiUseTypeVarsEndWith_.rule
         ]
 
 
 ### Fail
 
-    a : a
+    a : a_ -> a_
 
-    type Id phantomTag
-        = Id Int
+    type Id value_
+        = Id value_
 
 
 ### Success
 
-    a : a_
+    a : a -> a
 
-    type Id phantomTag_
-        = Id Int
+    type Id value
+        = Id value
 
 
 ## Don't use this
@@ -45,7 +45,7 @@ When you already use the -\_ suffix in (multi-use) type variables.
 -}
 rule : Rule
 rule =
-    Rule.newModuleRuleSchema "SingleUseTypeVars.EndWith_" ()
+    Rule.newModuleRuleSchema "NoMultiUseTypeVarsEndWith_" ()
         |> Rule.withSimpleDeclarationVisitor declarationVisitor
         |> Rule.withSimpleExpressionVisitor expressionVisitor
         |> Rule.fromModuleRuleSchema
@@ -79,8 +79,9 @@ groupedTypeVarsThatEndWith_ :
 groupedTypeVarsThatEndWith_ typeVars =
     typeVars
         |> List.filter
-            (Node.value >> (not << String.endsWith "_"))
-        |> groupTypeVars (.length >> (==) 1)
+            (Node.value >> String.endsWith "_")
+        |> groupTypeVars
+            (\{ length } -> length >= 2)
 
 
 toError :
@@ -89,7 +90,7 @@ toError :
     -> Rule.Error {}
 toError typeVars { typeVarName, range } =
     let
-        typeVarName_AleadyExist =
+        typeVarNameWithout_AleadyExist =
             typeVars
                 |> List.map Node.value
                 |> List.member (typeVarName ++ "_")
@@ -98,24 +99,42 @@ toError typeVars { typeVarName, range } =
         { message =
             "The type variable "
                 ++ typeVarName
-                ++ " isn't marked as single-use with a -_ suffix."
+                ++ " is used in multiple places,"
+                ++ " despite being marked as single-use with the -_ suffix."
         , details =
-            [ if typeVarName_AleadyExist then
-                [ "Choose a different name ("
-                , typeVarName
-                , "_ already exists)."
-                , " Then add the -_ suffix."
-                ]
-                    |> String.concat
+            "Rename one of them if this was an accident."
+                :: [ [ "If it wasn't an accident, "
+                     , if typeVarNameWithout_AleadyExist then
+                        [ "choose a different name ("
+                        , typeVarName |> String.dropRight 1
+                        , " already exists)."
+                        ]
+                            |> String.concat
 
-              else
-                "Add the -_ suffix (there's a fix available for that)."
-            ]
+                       else
+                        "remove the -_ suffix (there's a fix available for that)."
+                     ]
+                        |> String.concat
+                   ]
         }
         range
-        (if typeVarName_AleadyExist then
+        (if typeVarNameWithout_AleadyExist then
             []
 
          else
-            [ Fix.insertAt range.end "_" ]
+            typeVars
+                |> List.map
+                    (\typeVar ->
+                        let
+                            { start, end } =
+                                Node.range typeVar
+
+                            locationOf_ =
+                                { row = end.row
+                                , column = end.column - 1
+                                }
+                        in
+                        Fix.removeRange
+                            { start = locationOf_, end = end }
+                    )
         )
