@@ -26,7 +26,13 @@ collectTypeVarsFromDeclaration declaration =
         PortDeclaration { typeAnnotation } ->
             collectTypeVarsFromType typeAnnotation
 
-        _ ->
+        AliasDeclaration _ ->
+            []
+
+        Destructuring _ _ ->
+            []
+
+        InfixDeclaration _ ->
             []
 
 
