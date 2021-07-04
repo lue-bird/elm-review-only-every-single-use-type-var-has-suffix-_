@@ -78,7 +78,7 @@ collectTypeVarsFromType type_ =
                 |> List.concat
 
         GenericRecord toExtend fields ->
-            typeVarIfEndsWith_ (Node.value toExtend)
+            toExtend
                 :: (fields
                         |> Node.value
                         |> List.map Node.value
