@@ -102,20 +102,20 @@ toError typeVars { typeVarName, range } =
                 ++ " is used in multiple places,"
                 ++ " despite being marked as single-use with the -_ suffix."
         , details =
-            "Rename one of them if this was an accident. "
-                :: [ [ "If it wasn't an accident, "
-                     , if typeVarNameWithout_AleadyExist then
-                        [ "choose a different name ("
-                        , typeVarName |> String.dropRight 1
-                        , " already exists)."
-                        ]
-                            |> String.concat
-
-                       else
-                        "remove the -_ suffix (there's a fix available for that)."
-                     ]
+            [ "Rename one of them if this was an accident. "
+            , [ "If it wasn't an accident, "
+              , if typeVarNameWithout_AleadyExist then
+                    [ "choose a different name ("
+                    , typeVarName |> String.dropRight 1
+                    , " already exists)."
+                    ]
                         |> String.concat
-                   ]
+
+                else
+                    "remove the -_ suffix (there's a fix available for that)."
+              ]
+                |> String.concat
+            ]
         }
         range
         (if typeVarNameWithout_AleadyExist then
@@ -126,15 +126,12 @@ toError typeVars { typeVarName, range } =
                 |> List.map
                     (\typeVar ->
                         let
-                            { start, end } =
+                            { end } =
                                 Node.range typeVar
-
-                            locationOf_ =
-                                { row = end.row
-                                , column = end.column - 1
-                                }
                         in
                         Fix.removeRange
-                            { start = locationOf_, end = end }
+                            { start = { end | column = end.column - 1 }
+                            , end = end
+                            }
                     )
         )
