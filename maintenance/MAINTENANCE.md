@@ -5,13 +5,13 @@ This document has been created along with the project through the `elm-review ne
 A lot of things should happen automatically for you. Here is an overview of what you should know and what to expect.
 
 We'll discuss
-- [Writing rules](#writing-rules)
+- [Writing rules](#adding-a-new-rule)
 - [Example and preview configurations](#example-and-preview-configurations)
 - [Publishing](#publishing)
 
 This document and the set up created for you is aimed at helping you work and improving the quality of the package. You can however opt out of all of this if you encounter problems or it doesn't suit you for any reason. If that happens, please contact the `elm-review` maintainers so that they can work on improvements.
 
-### Adding a new rule
+## Adding a new rule
 
 It is better if rule packages contain multiple rules dealing with the same or similar concerns, rather than a single rule.
 
