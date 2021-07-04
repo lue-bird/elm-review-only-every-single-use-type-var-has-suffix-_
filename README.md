@@ -42,8 +42,8 @@ which sadly doesn't exist 😢
 
 ## Provided rules
 
-- [`No.MultiUse.TypeVar.Has.Suffix_`](https://package.elm-lang.org/packages/lue-bird/elm-review-highlight-single-use-type-vars/1.0.0/No-MultiUse-TypeVar-Has-Suffix_) - Reports multi-use type variables that have a -_ suffix.
-- [`Every.SingleUse.TypedVar.Has.Suffix_`](https://package.elm-lang.org/packages/lue-bird/elm-review-highlight-single-use-type-vars/1.0.0/Every-SingleUse-TypedVar-Has-Suffix_) - Reports single-use type variables that don't have a -_ suffix.
+- [`No.MultiUseTypeVars.EndWith_`](https://package.elm-lang.org/packages/lue-bird/elm-review-highlight-single-use-type-vars/1.0.0/No-MultiUseTypeVars-EndWith_) - Reports multi-use type variables that have a -_ suffix.
+- [`SingleUseTypedVars.EndWith_`](https://package.elm-lang.org/packages/lue-bird/elm-review-highlight-single-use-type-vars/1.0.0/SingleUseTypedVars-EndWith_) - Reports single-use type variables that don't have a -_ suffix.
 
 ## Configuration
 
@@ -51,12 +51,12 @@ which sadly doesn't exist 😢
 module ReviewConfig exposing (config)
 
 import No.MultiUse.TypeVar.HasSuffix_
-import Every.SingleUse.TypeVar.HasSuffix_
+import SingleUseTypedVars.EndWith_
 import Review.Rule exposing (Rule)
 
 config : List Rule
 config =
-    [ Every.SingleUse.TypeVar.HasSuffix_.rule
+    [ SingleUseTypedVars.EndWith_.rule
     , No.MultiUse.TypeVar.HasSuffix_.rule
     ]
 ```
