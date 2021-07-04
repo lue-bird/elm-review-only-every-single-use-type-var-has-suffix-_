@@ -1,7 +1,7 @@
-module Every.SingleUse.TypedVar.Has.Suffix_Test exposing (all)
+module SingleUseTypeVars.EndWith_Test exposing (all)
 
-import Every.SingleUse.TypedVar.Has.Suffix_ exposing (rule)
 import Review.Test
+import SingleUseTypeVars.EndWith_ exposing (rule)
 import Test exposing (Test, describe, test)
 
 

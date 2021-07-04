@@ -1,12 +1,12 @@
 {
     "type": "package",
-    "name": "lue-bird/elm-review-only-every-single-use-type-var-has-suffix-_",
-    "summary": "",
+    "name": "lue-bird/elm-review-highlight-single-use-type-vars",
+    "summary": "review rules to make sure single-use type variables end with _",
     "license": "MIT",
     "version": "1.0.0",
     "exposed-modules": [
-        "Every.SingleUse.TypedVar.HasSuffix_",
-        "No.MultiUse.TypeVar.HasSuffix_"
+        "SingleUseTypedVars.EndWith_",
+        "No.MultiUseTypeVars.EndWith_"
     ],
     "elm-version": "0.19.0 <= v < 0.20.0",
     "dependencies": {

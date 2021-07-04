@@ -1,4 +1,4 @@
-module No.MultiUse.TypeVar.Has.Suffix_Test exposing (all)
+module No.MultiUseTypeVars.EndWith_Test exposing (all)
 
 import No.MultiUse.TypeVar.Has.Suffix_ exposing (rule)
 import Review.Test

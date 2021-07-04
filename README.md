@@ -1,4 +1,4 @@
-# elm-review-only-every-single-use-type-var-has-suffix-_
+# elm-review-highlight-single-use-type-vars
 
 [`elm-review`](https://package.elm-lang.org/packages/jfmengels/elm-review/latest/) rules to make sure single-use type variables are highlighted with the suffix -_.
 
@@ -42,8 +42,8 @@ which sadly doesn't exist 😢
 
 ## Provided rules
 
-- [`No.MultiUse.TypeVar.Has.Suffix_`](https://package.elm-lang.org/packages/lue-bird/elm-review-only-every-single-use-type-var-has-suffix-_/1.0.0/No-MultiUse-TypeVar-Has-Suffix_) - Reports multi-use type variables that have a -_ suffix.
-- [`Every.SingleUse.TypedVar.Has.Suffix_`](https://package.elm-lang.org/packages/lue-bird/elm-review-only-every-single-use-type-var-has-suffix-_/1.0.0/Every-SingleUse-TypedVar-Has-Suffix_) - Reports single-use type variables that don't have a -_ suffix.
+- [`No.MultiUse.TypeVar.Has.Suffix_`](https://package.elm-lang.org/packages/lue-bird/elm-review-highlight-single-use-type-vars/1.0.0/No-MultiUse-TypeVar-Has-Suffix_) - Reports multi-use type variables that have a -_ suffix.
+- [`Every.SingleUse.TypedVar.Has.Suffix_`](https://package.elm-lang.org/packages/lue-bird/elm-review-highlight-single-use-type-vars/1.0.0/Every-SingleUse-TypedVar-Has-Suffix_) - Reports single-use type variables that don't have a -_ suffix.
 
 ## Configuration
 

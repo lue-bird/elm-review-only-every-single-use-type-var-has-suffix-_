@@ -1,4 +1,4 @@
-module No.MultiUse.TypeVar.Has.Suffix_ exposing (rule)
+module SingleUseTypeVars.EndWith_ exposing (rule)
 
 {-|
 
@@ -12,7 +12,7 @@ import Review.Rule as Rule exposing (Rule)
 {-| Reports... REPLACEME
 
     config =
-        [ No.MultiUse.TypeVar.Has.Suffix_.rule
+        [ Every.SingleUse.TypedVar.Has.Suffix_.rule
         ]
 
 
@@ -39,12 +39,12 @@ This rule is not useful when REPLACEME.
 You can try this rule out by running the following command:
 
 ```bash
-elm-review --template lue-bird/elm-review-only-every-single-use-type-var-has-suffix-_/example --rules No.MultiUse.TypeVar.Has.Suffix_
+elm-review --template lue-bird/elm-review-highlight-single-use-type-vars/example --rules Every.SingleUse.TypedVar.Has.Suffix_
 ```
 
 -}
 rule : Rule
 rule =
-    Rule.newModuleRuleSchema "No.MultiUse.TypeVar.Has.Suffix_" ()
+    Rule.newModuleRuleSchema "Every.SingleUse.TypedVar.Has.Suffix_" ()
         -- Add your visitors
         |> Rule.fromModuleRuleSchema
