@@ -102,7 +102,7 @@ toError typeVars { typeVarName, range } =
                 ++ " is used in multiple places,"
                 ++ " despite being marked as single-use with the -_ suffix."
         , details =
-            "Rename one of them if this was an accident."
+            "Rename one of them if this was an accident. "
                 :: [ [ "If it wasn't an accident, "
                      , if typeVarNameWithout_AleadyExist then
                         [ "choose a different name ("
