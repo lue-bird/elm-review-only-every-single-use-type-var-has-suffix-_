@@ -9,7 +9,7 @@ module OnlyAllSingleUseTypeVarsEndWith_ exposing (rule)
 import Elm.Syntax.Declaration exposing (Declaration)
 import Elm.Syntax.Expression exposing (Expression)
 import Elm.Syntax.Node as Node exposing (Node)
-import Elm.Syntax.Range as Range exposing (Range)
+import Elm.Syntax.Range as Range
 import List.Extra as List
 import List.NonEmpty
 import Review.Fix as Fix
@@ -82,6 +82,7 @@ expressionVisitor expression =
         |> checkTypeVarsForErrors
 
 
+checkTypeVarsForErrors : List (Node String) -> List (Rule.Error {})
 checkTypeVarsForErrors typeVars =
     let
         isSingleUse list =
