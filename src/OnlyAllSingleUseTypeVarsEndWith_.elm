@@ -9,10 +9,12 @@ module OnlyAllSingleUseTypeVarsEndWith_ exposing (rule)
 import Elm.Syntax.Declaration exposing (Declaration)
 import Elm.Syntax.Expression exposing (Expression)
 import Elm.Syntax.Node as Node exposing (Node)
-import Elm.Syntax.Range exposing (Range)
+import Elm.Syntax.Range as Range exposing (Range)
+import List.Extra as List
+import List.NonEmpty
 import Review.Fix as Fix
 import Review.Rule as Rule exposing (Rule)
-import SyntaxHelp exposing (collectLetDeclarationsFromExpression, collectTypeVarsFromDeclaration, collectTypeVarsFromType, collectTypesFromLetDeclaration, groupTypeVars)
+import SyntaxHelp exposing (collectLetDeclarationsFromExpression, collectTypeVarsFromDeclaration, collectTypeVarsFromType, collectTypesFromLetDeclaration)
 
 
 {-| Reports
@@ -68,75 +70,69 @@ rule =
 
 declarationVisitor : Node Declaration -> List (Rule.Error {})
 declarationVisitor declaration =
-    let
-        typeVars =
-            collectTypeVarsFromDeclaration declaration
-    in
-    [ typeVars
-        |> groupedTypeVarsThatDontEndWith_
-        |> List.map (singleUseTypeVarDidntEndWith_Error typeVars)
-    , typeVars
-        |> groupedTypeVarsThatEndWith_
-        |> List.map (multiUseTypeVarsEndWith_Error typeVars)
-    ]
-        |> List.concat
+    collectTypeVarsFromDeclaration declaration
+        |> checkTypeVarsForErrors
 
 
 expressionVisitor : Node Expression -> List (Rule.Error {})
 expressionVisitor expression =
+    collectLetDeclarationsFromExpression expression
+        |> List.concatMap collectTypesFromLetDeclaration
+        |> List.concatMap collectTypeVarsFromType
+        |> checkTypeVarsForErrors
+
+
+checkTypeVarsForErrors typeVars =
     let
-        typeVars =
-            collectLetDeclarationsFromExpression expression
-                |> List.concatMap collectTypesFromLetDeclaration
-                |> List.concatMap collectTypeVarsFromType
+        isSingleUse list =
+            List.NonEmpty.length list == 1
+
+        isMultiUse list =
+            List.NonEmpty.length list >= 2
     in
-    [ typeVars
-        |> groupedTypeVarsThatDontEndWith_
-        |> List.map (singleUseTypeVarDidntEndWith_Error typeVars)
-    , typeVars
-        |> groupedTypeVarsThatEndWith_
+    [ let
+        singleUseTypeVarsThatDontEndWith_ =
+            typeVars
+                |> List.filter
+                    ((not << String.endsWith "_") << Node.value)
+                |> groupBy Node.value
+                |> List.filter isSingleUse
+                |> List.map List.NonEmpty.head
+      in
+      singleUseTypeVarsThatDontEndWith_
+        |> List.map (singleUseTypeVarDoesntEndWith_Error typeVars)
+    , let
+        multiUseTypeVarsThatEndWith_ =
+            typeVars
+                |> List.filter
+                    (String.endsWith "_" << Node.value)
+                |> groupBy Node.value
+                |> List.filter isMultiUse
+      in
+      multiUseTypeVarsThatEndWith_
         |> List.map (multiUseTypeVarsEndWith_Error typeVars)
     ]
         |> List.concat
 
 
-groupedTypeVarsThatDontEndWith_ :
-    List (Node String)
-    -> List { typeVarName : String, range : Range }
-groupedTypeVarsThatDontEndWith_ typeVars =
-    typeVars
-        |> List.filter
-            (Node.value >> (not << String.endsWith "_"))
-        |> groupTypeVars (.length >> (==) 1)
-
-
-groupedTypeVarsThatEndWith_ :
-    List (Node String)
-    -> List { typeVarName : String, range : Range }
-groupedTypeVarsThatEndWith_ typeVars =
-    typeVars
-        |> List.filter
-            (Node.value >> String.endsWith "_")
-        |> groupTypeVars
-            (\{ length } -> length >= 2)
-
-
-singleUseTypeVarDidntEndWith_Error :
-    List (Node String)
-    -> { typeVarName : String, range : Range }
-    -> Rule.Error {}
-singleUseTypeVarDidntEndWith_Error typeVars { typeVarName, range } =
+singleUseTypeVarDoesntEndWith_Error : List (Node String) -> Node String -> Rule.Error {}
+singleUseTypeVarDoesntEndWith_Error allTypeVars culprit =
     let
+        typeVarName =
+            Node.value culprit
+
         typeVarName_AleadyExist =
-            typeVars
+            allTypeVars
                 |> List.map Node.value
                 |> List.member (typeVarName ++ "_")
     in
     Rule.errorWithFix
         { message =
-            "The type variable "
-                ++ typeVarName
-                ++ " isn't marked as single-use with a -_ suffix."
+            [ "The type variable "
+            , typeVarName
+            , " isn't marked as single-use with a -_ suffix."
+            ]
+                |> String.concat
         , details =
             [ biggestReasonOfExistance
             , if typeVarName_AleadyExist then
@@ -151,30 +147,39 @@ singleUseTypeVarDidntEndWith_Error typeVars { typeVarName, range } =
                 "Add the -_ suffix (there's a fix available for that)."
             ]
         }
-        range
+        (Node.range culprit)
         (if typeVarName_AleadyExist then
             []
 
          else
-            [ Fix.insertAt range.end "_" ]
+            [ Fix.insertAt (Node.range culprit).end "_" ]
         )
 
 
 multiUseTypeVarsEndWith_Error :
     List (Node String)
-    -> { typeVarName : String, range : Range }
+    -> List.NonEmpty.NonEmpty (Node String)
     -> Rule.Error {}
-multiUseTypeVarsEndWith_Error typeVars { typeVarName, range } =
+multiUseTypeVarsEndWith_Error allTypeVars culprits =
     let
+        culpritsName =
+            Node.value (List.NonEmpty.head culprits)
+
+        culpritsRange =
+            culprits
+                |> List.NonEmpty.map Node.range
+                |> List.NonEmpty.toList
+                |> Range.combine
+
         typeVarNameWithout_AleadyExist =
-            typeVars
+            allTypeVars
                 |> List.map Node.value
-                |> List.member (typeVarName ++ "_")
+                |> List.member (culpritsName |> String.dropRight 1)
     in
     Rule.errorWithFix
         { message =
             [ "The type variable "
-            , typeVarName
+            , culpritsName
             , " is used in multiple places,"
             , " despite being marked as single-use with the -_ suffix."
             ]
@@ -185,7 +190,7 @@ multiUseTypeVarsEndWith_Error typeVars { typeVarName, range } =
             , [ "If it wasn't an accident, "
               , if typeVarNameWithout_AleadyExist then
                     [ "choose a different name ("
-                    , typeVarName |> String.dropRight 1
+                    , culpritsName |> String.dropRight 1
                     , " already exists)."
                     ]
                         |> String.concat
@@ -196,13 +201,13 @@ multiUseTypeVarsEndWith_Error typeVars { typeVarName, range } =
                 |> String.concat
             ]
         }
-        range
+        culpritsRange
         (if typeVarNameWithout_AleadyExist then
             []
 
          else
-            typeVars
-                |> List.map
+            culprits
+                |> List.NonEmpty.map
                     (\typeVar ->
                         let
                             { end } =
@@ -213,9 +218,22 @@ multiUseTypeVarsEndWith_Error typeVars { typeVarName, range } =
                             , end = end
                             }
                     )
+                |> List.NonEmpty.toList
         )
 
 
 biggestReasonOfExistance : String
 biggestReasonOfExistance =
     "-_ at the end of a type variable is a good indication that it is used only in this one place."
+
+
+
+-- util
+
+
+groupBy : (a -> comparable_) -> List a -> List ( a, List a )
+groupBy toComparable list =
+    list
+        |> List.sortBy toComparable
+        |> List.groupWhile
+            (\a b -> toComparable a == toComparable b)
