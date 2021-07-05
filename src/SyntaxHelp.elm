@@ -1,7 +1,7 @@
 module SyntaxHelp exposing (collectLetDeclarationsFromExpression, collectTypeVarsFromDeclaration, collectTypeVarsFromType, collectTypesFromLetDeclaration, groupTypeVars)
 
 import Elm.Syntax.Declaration exposing (Declaration(..))
-import Elm.Syntax.Expression exposing (Expression(..), Function, LetDeclaration(..))
+import Elm.Syntax.Expression exposing (Expression(..), LetDeclaration(..))
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range as Range exposing (Range)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
