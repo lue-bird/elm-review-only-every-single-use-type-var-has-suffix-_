@@ -1,4 +1,4 @@
-module SyntaxHelp exposing (collectLetDeclarationsFromExpression, collectTypeVarsFromDeclaration, collectTypeVarsFromType, collectTypesFromLetDeclaration, groupTypeVars)
+module SyntaxHelp exposing (collectLetDeclarationsFromExpression, collectTypeVarsFromDeclaration, collectTypeVarsFromType, collectTypesFromLetDeclaration)
 
 import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Expression exposing (Expression(..), LetDeclaration(..))
@@ -194,38 +194,3 @@ collectLetDeclarationsFromExpression expression =
 
         PrefixOperator _ ->
             []
-
-
-groupTypeVars :
-    ({ length : Int } -> Bool)
-    -> List (Node comparable)
-    -> List { typeVarName : comparable, range : Range }
-groupTypeVars isErrorGroup typeVars =
-    typeVars
-        |> groupBy Node.value
-        |> List.filter
-            (\list ->
-                { length = List.NonEmpty.length list }
-                    |> isErrorGroup
-            )
-        |> List.map
-            (\( head, tail ) ->
-                { typeVarName = Node.value head
-                , range =
-                    (head :: tail)
-                        |> List.map Node.range
-                        |> Range.combine
-                }
-            )
-
-
-
--- util
-
-
-groupBy : (a -> comparable_) -> List a -> List ( a, List a )
-groupBy toComparable list =
-    list
-        |> List.sortBy toComparable
-        |> List.groupWhile
-            (\a b -> toComparable a == toComparable b)
