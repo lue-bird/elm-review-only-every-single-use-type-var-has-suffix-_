@@ -88,6 +88,7 @@ collectTypeVarsFromType type_ =
                    )
 
 
+collectTypesFromLetDeclaration : Node LetDeclaration -> List (Node TypeAnnotation)
 collectTypesFromLetDeclaration letDeclaration =
     case Node.value letDeclaration of
         LetFunction { signature } ->
@@ -104,6 +105,7 @@ collectTypesFromLetDeclaration letDeclaration =
                 |> List.concatMap collectTypesFromLetDeclaration
 
 
+collectLetDeclarationsFromExpression : Node Expression -> List (Node LetDeclaration)
 collectLetDeclarationsFromExpression expression =
     let
         collectRecordSetterExpressions =

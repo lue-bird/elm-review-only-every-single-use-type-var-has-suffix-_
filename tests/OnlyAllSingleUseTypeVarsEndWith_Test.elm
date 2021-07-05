@@ -15,6 +15,7 @@ all =
         ]
 
 
+singleUseTypeVarsEndWith_Tests : List Test
 singleUseTypeVarsEndWith_Tests =
     [ test "error in function"
         (\() ->
@@ -134,6 +135,7 @@ singleUseTypeVarDoesntEndWith_Error { typeVar, under } =
         }
 
 
+noMultiUseTypeVarsEndWith_ : List Test
 noMultiUseTypeVarsEndWith_ =
     [ test "error in function"
         (\() ->
