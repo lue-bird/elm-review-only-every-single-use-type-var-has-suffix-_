@@ -3,10 +3,7 @@ module SyntaxHelp exposing (collectLetDeclarationsFromExpression, collectTypeVar
 import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Expression exposing (Expression(..), LetDeclaration(..))
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Range as Range exposing (Range)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
-import List.Extra as List
-import List.NonEmpty
 
 
 collectTypeVarsFromDeclaration : Node Declaration -> List (Node String)
