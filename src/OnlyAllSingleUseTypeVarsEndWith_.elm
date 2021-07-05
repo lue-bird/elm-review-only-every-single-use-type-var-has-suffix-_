@@ -84,14 +84,10 @@ expressionVisitor expression =
 
 checkTypeVarsForErrors : List (Node String) -> List (Rule.Error {})
 checkTypeVarsForErrors typeVars =
-    let
+    [ let
         isSingleUse list =
             List.NonEmpty.length list == 1
 
-        isMultiUse list =
-            List.NonEmpty.length list >= 2
-    in
-    [ let
         singleUseTypeVarsThatDontEndWith_ =
             typeVars
                 |> List.filter
@@ -103,6 +99,9 @@ checkTypeVarsForErrors typeVars =
       singleUseTypeVarsThatDontEndWith_
         |> List.map (singleUseTypeVarDoesntEndWith_Error typeVars)
     , let
+        isMultiUse list =
+            List.NonEmpty.length list >= 2
+
         multiUseTypeVarsThatEndWith_ =
             typeVars
                 |> List.filter
