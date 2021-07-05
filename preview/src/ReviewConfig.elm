@@ -12,12 +12,10 @@ when inside the directory containing this file.
 -}
 
 import OnlyAllSingleUseTypeVarsEndWith_
-import OnlyAllSingleUseTypeVarsEndWith_
 import Review.Rule exposing (Rule)
 
 
 config : List Rule
 config =
     [ OnlyAllSingleUseTypeVarsEndWith_.rule
-    , OnlyAllSingleUseTypeVarsEndWith_.rule
     ]
