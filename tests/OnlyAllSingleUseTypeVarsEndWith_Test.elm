@@ -12,6 +12,50 @@ all =
             singleUseTypeVarsEndWith_Tests
         , describe "no multi-use type variables end with _"
             noMultiUseTypeVarsEndWith_
+        , test "complex type with both errors"
+            (\() ->
+                """
+module A exposing (..)
+
+a =
+    let
+        b : ( Task x_ (Typed (Checked (Public a_))), Maybe yay, Result x_ )
+        b = b
+    in
+    ()
+"""
+                    |> Review.Test.run rule
+                    |> Review.Test.expectErrors
+                        [ singleUseTypeVarDoesntEndWith_Error
+                            { typeVar = "yay"
+                            , under = "yay"
+                            }
+                            |> Review.Test.whenFixed """
+module A exposing (..)
+
+a =
+    let
+        b : ( Task x_ (Typed (Checked (Public a_))), Maybe yay_, Result x_ )
+        b = b
+    in
+    ()
+"""
+                        , multiUseTypeVarsEndWith_Error
+                            { typeVar = "x_"
+                            , under = "x_ (Typed (Checked (Public a_))), Maybe yay, Result x_"
+                            }
+                            |> Review.Test.whenFixed """
+module A exposing (..)
+
+a =
+    let
+        b : ( Task x (Typed (Checked (Public a_))), Maybe yay, Result x )
+        b = b
+    in
+    ()
+"""
+                        ]
+            )
         ]
 
 
