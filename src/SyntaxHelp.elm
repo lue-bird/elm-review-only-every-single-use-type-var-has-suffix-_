@@ -1,4 +1,4 @@
-module SyntaxHelp exposing (collectLetDeclarationsFromExpression, collectTypeVarsFromDeclaration, collectTypeVarsFromType, collectTypesFromLetDeclaration)
+module SyntaxHelp exposing (allTypeVarsInType, collectTypeVarsFromDeclaration)
 
 import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Expression exposing (Expression(..), LetDeclaration(..))
@@ -6,9 +6,9 @@ import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 
 
-collectTypeVarsFromDeclaration : Node Declaration -> List (Node String)
+collectTypeVarsFromDeclaration : Declaration -> List (Node String)
 collectTypeVarsFromDeclaration declaration =
-    case Node.value declaration of
+    case declaration of
         FunctionDeclaration { signature } ->
             case signature of
                 Nothing ->
@@ -16,18 +16,18 @@ collectTypeVarsFromDeclaration declaration =
 
                 Just type_ ->
                     (type_ |> Node.value |> .typeAnnotation)
-                        |> collectTypeVarsFromType
+                        |> allTypeVarsInType
 
         CustomTypeDeclaration { generics, constructors } ->
             generics
                 ++ (constructors
                         |> List.map (Node.value >> .arguments)
                         |> List.concatMap
-                            (List.concatMap collectTypeVarsFromType)
+                            (List.concatMap allTypeVarsInType)
                    )
 
         PortDeclaration { typeAnnotation } ->
-            collectTypeVarsFromType typeAnnotation
+            allTypeVarsInType typeAnnotation
 
         AliasDeclaration _ ->
             []
@@ -39,155 +39,36 @@ collectTypeVarsFromDeclaration declaration =
             []
 
 
-collectTypeVarsFromType : Node TypeAnnotation -> List (Node String)
-collectTypeVarsFromType type_ =
-    let
-        typeVarIfEndsWith_ typeVarName =
-            Node (Node.range type_) typeVarName
-    in
+allTypeVarsInType : Node TypeAnnotation -> List (Node String)
+allTypeVarsInType type_ =
     case Node.value type_ of
         Unit ->
             []
 
         GenericType typeVarName ->
-            [ typeVarIfEndsWith_ typeVarName ]
+            [ Node (Node.range type_) typeVarName ]
 
         Typed _ typeArguments ->
             typeArguments
-                |> List.map collectTypeVarsFromType
-                |> List.concat
+                |> List.concatMap allTypeVarsInType
 
         FunctionTypeAnnotation a b ->
             [ a, b ]
-                |> List.map collectTypeVarsFromType
-                |> List.concat
+                |> List.concatMap allTypeVarsInType
 
         Tupled innerTypes ->
             innerTypes
-                |> List.map collectTypeVarsFromType
-                |> List.concat
+                |> List.concatMap allTypeVarsInType
 
         Record fields ->
             fields
-                |> List.map Node.value
-                |> List.map (\( _, type__ ) -> type__)
-                |> List.map collectTypeVarsFromType
-                |> List.concat
+                |> List.map (\(Node _ ( _, type__ )) -> type__)
+                |> List.concatMap allTypeVarsInType
 
         GenericRecord toExtend fields ->
             toExtend
                 :: (fields
                         |> Node.value
-                        |> List.map Node.value
-                        |> List.map (\( _, type__ ) -> type__)
-                        |> List.map collectTypeVarsFromType
-                        |> List.concat
+                        |> List.map (\(Node _ ( _, type__ )) -> type__)
+                        |> List.concatMap allTypeVarsInType
                    )
-
-
-collectTypesFromLetDeclaration : Node LetDeclaration -> List (Node TypeAnnotation)
-collectTypesFromLetDeclaration letDeclaration =
-    case Node.value letDeclaration of
-        LetFunction { signature } ->
-            case signature of
-                Nothing ->
-                    []
-
-                Just type_ ->
-                    [ type_ |> Node.value |> .typeAnnotation ]
-
-        LetDestructuring _ expr ->
-            expr
-                |> collectLetDeclarationsFromExpression
-                |> List.concatMap collectTypesFromLetDeclaration
-
-
-collectLetDeclarationsFromExpression : Node Expression -> List (Node LetDeclaration)
-collectLetDeclarationsFromExpression expression =
-    let
-        collectRecordSetterExpressions =
-            List.map Node.value
-                >> List.map (\( _, expr ) -> expr)
-                >> List.concatMap collectLetDeclarationsFromExpression
-    in
-    case Node.value expression of
-        LetExpression letBlock ->
-            (letBlock.expression
-                |> collectLetDeclarationsFromExpression
-            )
-                ++ letBlock.declarations
-
-        ListExpr expressions ->
-            expressions |> List.concatMap collectLetDeclarationsFromExpression
-
-        TupledExpression expressions ->
-            expressions |> List.concatMap collectLetDeclarationsFromExpression
-
-        RecordExpr setters ->
-            setters |> collectRecordSetterExpressions
-
-        RecordUpdateExpression _ updaters ->
-            updaters |> collectRecordSetterExpressions
-
-        Application expressions ->
-            expressions |> List.concatMap collectLetDeclarationsFromExpression
-
-        CaseExpression caseBlock ->
-            caseBlock.expression
-                :: (caseBlock.cases
-                        |> List.map (\( _, expr ) -> expr)
-                   )
-                |> List.concatMap collectLetDeclarationsFromExpression
-
-        OperatorApplication _ _ aExpr bExpr ->
-            [ aExpr, bExpr ]
-                |> List.concatMap collectLetDeclarationsFromExpression
-
-        IfBlock boolExpr thenExpr elseExpr ->
-            [ boolExpr, thenExpr, elseExpr ]
-                |> List.concatMap collectLetDeclarationsFromExpression
-
-        LambdaExpression lambda ->
-            lambda.expression |> collectLetDeclarationsFromExpression
-
-        RecordAccess record _ ->
-            record |> collectLetDeclarationsFromExpression
-
-        ParenthesizedExpression expr ->
-            expr |> collectLetDeclarationsFromExpression
-
-        Negation expr ->
-            expr |> collectLetDeclarationsFromExpression
-
-        UnitExpr ->
-            []
-
-        Integer _ ->
-            []
-
-        Hex _ ->
-            []
-
-        Floatable _ ->
-            []
-
-        Literal _ ->
-            []
-
-        CharLiteral _ ->
-            []
-
-        GLSLExpression _ ->
-            []
-
-        RecordAccessFunction _ ->
-            []
-
-        FunctionOrValue _ _ ->
-            []
-
-        Operator _ ->
-            []
-
-        PrefixOperator _ ->
-            []

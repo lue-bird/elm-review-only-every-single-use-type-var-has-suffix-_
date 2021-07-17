@@ -7,14 +7,15 @@ module OnlyAllSingleUseTypeVarsEndWith_ exposing (rule)
 -}
 
 import Elm.Syntax.Declaration exposing (Declaration)
-import Elm.Syntax.Expression exposing (Expression)
+import Elm.Syntax.Expression exposing (Expression(..), LetDeclaration(..))
 import Elm.Syntax.Node as Node exposing (Node)
 import Elm.Syntax.Range as Range
+import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 import List.Extra as List
 import List.NonEmpty
 import Review.Fix as Fix
 import Review.Rule as Rule exposing (Rule)
-import SyntaxHelp exposing (collectLetDeclarationsFromExpression, collectTypeVarsFromDeclaration, collectTypeVarsFromType, collectTypesFromLetDeclaration)
+import SyntaxHelp exposing (allTypeVarsInType, collectTypeVarsFromDeclaration)
 
 
 {-| Reports
@@ -63,31 +64,56 @@ When you already use the -\_ suffix in (multi-use) type variables.
 rule : Rule
 rule =
     Rule.newModuleRuleSchema "OnlyAllSingleUseTypeVarsEndWith_" ()
-        |> Rule.withSimpleDeclarationVisitor declarationVisitor
-        |> Rule.withSimpleExpressionVisitor expressionVisitor
+        |> Rule.withSimpleDeclarationVisitor
+            (checkDeclaration << Node.value)
+        |> Rule.withSimpleExpressionVisitor
+            (checkExpression << Node.value)
         |> Rule.fromModuleRuleSchema
 
 
-declarationVisitor : Node Declaration -> List (Rule.Error {})
-declarationVisitor declaration =
+checkDeclaration : Declaration -> List (Rule.Error {})
+checkDeclaration declaration =
     collectTypeVarsFromDeclaration declaration
-        |> checkTypeVarsForErrors
+        |> checkTypeVars
 
 
-expressionVisitor : Node Expression -> List (Rule.Error {})
-expressionVisitor expression =
-    collectLetDeclarationsFromExpression expression
-        |> List.concatMap collectTypesFromLetDeclaration
-        |> List.concatMap collectTypeVarsFromType
-        |> checkTypeVarsForErrors
+checkExpression : Expression -> List (Rule.Error {})
+checkExpression expression =
+    case expression of
+        LetExpression letBlock ->
+            let
+                typesInLetDeclaration :
+                    LetDeclaration
+                    -> Maybe (Node TypeAnnotation)
+                typesInLetDeclaration letDeclaration =
+                    case letDeclaration of
+                        LetFunction { signature } ->
+                            signature
+                                |> Maybe.map (.typeAnnotation << Node.value)
+
+                        _ ->
+                            Nothing
+            in
+            letBlock.declarations
+                |> List.filterMap
+                    (typesInLetDeclaration << Node.value)
+                |> List.concatMap allTypeVarsInType
+                |> checkTypeVars
+
+        _ ->
+            []
 
 
-checkTypeVarsForErrors : List (Node String) -> List (Rule.Error {})
-checkTypeVarsForErrors typeVars =
+checkTypeVars : List (Node String) -> List (Rule.Error {})
+checkTypeVars typeVars =
+    let
+        isSingleUse =
+            List.NonEmpty.length >> (==) 1
+
+        isMultiUse list =
+            List.NonEmpty.length list >= 2
+    in
     [ let
-        isSingleUse list =
-            List.NonEmpty.length list == 1
-
         singleUseTypeVarsThatDontEndWith_ =
             typeVars
                 |> List.filter
@@ -99,9 +125,6 @@ checkTypeVarsForErrors typeVars =
       singleUseTypeVarsThatDontEndWith_
         |> List.map (singleUseTypeVarDoesntEndWith_Error typeVars)
     , let
-        isMultiUse list =
-            List.NonEmpty.length list >= 2
-
         multiUseTypeVarsThatEndWith_ =
             typeVars
                 |> List.filter
@@ -115,7 +138,10 @@ checkTypeVarsForErrors typeVars =
         |> List.concat
 
 
-singleUseTypeVarDoesntEndWith_Error : List (Node String) -> Node String -> Rule.Error {}
+singleUseTypeVarDoesntEndWith_Error :
+    List (Node String)
+    -> Node String
+    -> Rule.Error {}
 singleUseTypeVarDoesntEndWith_Error allTypeVars culprit =
     let
         typeVarName =
