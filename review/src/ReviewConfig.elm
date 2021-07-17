@@ -30,6 +30,10 @@ import NoUnused.Patterns
 import NoUnused.Variables
 import Review.Rule as Rule exposing (Rule)
 import Simplify
+import OnlyAllSingleUseTypeVarsEndWith_
+import NoSinglePatternCase
+import NoLeftPizza
+import NoBooleanCase
 
 
 config : List Rule
@@ -39,8 +43,8 @@ config =
     , NoDebug.TodoOrToString.rule
         |> Rule.ignoreErrorsForDirectories [ "tests/" ]
     , NoExposingEverything.rule
-    , NoForbiddenWords.rule [ "REPLACEME" ]
-    , NoImportingEverything.rule []
+    , NoForbiddenWords.rule [ "REPLACEME", "TODO", "todo" ]
+    , NoImportingEverything.rule [ "Nats", "TypeNats" ]
     , NoMissingTypeAnnotation.rule
     , NoMissingTypeExpose.rule
     , NoUnused.CustomTypeConstructors.rule []
@@ -52,4 +56,8 @@ config =
     , NoUnused.Patterns.rule
     , NoUnused.Variables.rule
     , Simplify.rule
+    , OnlyAllSingleUseTypeVarsEndWith_.rule
+    , NoSinglePatternCase.rule
+    , NoLeftPizza.rule NoLeftPizza.Any
+    , NoBooleanCase.rule
     ]
