@@ -66,4 +66,5 @@ config =
 
 ## Don't use this
 
-When you already use the -_ suffix in (multi-use) type variables.
+- If you already use the -_ suffix in (multi-use) type variables.
+- If you want to keep the standard way of naming type variables for consistency.
