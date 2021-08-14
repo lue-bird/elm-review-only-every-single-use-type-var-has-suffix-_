@@ -32,7 +32,7 @@ at :
 ```
 (from [typesafe-array: Arr.at](https://package.elm-lang.org/packages/lue-bird/elm-typesafe-array/latest/Arr#at))
 
-Once youre used to this, it can be really nice, similar to
+Once you're used to this, it can be really nice, similar to
 
 ```elm
 at :
@@ -45,7 +45,7 @@ which sadly doesn't exist 😢
 
 ## Provided rules
 
-- [`OnlyAllSingleUseTypeVarsEndWith_`](https://package.elm-lang.org/packages/elm-review-single-use-type-vars-end-with-underscore/1.0.0/OnlyAllSingleUseTypeVarsEndWith_)
+- [`OnlyAllSingleUseTypeVarsEndWith_`](https://package.elm-lang.org/packages/lue-bird/elm-review-single-use-type-vars-end-with-underscore/2.0.1/OnlyAllSingleUseTypeVarsEndWith_)
     - Reports multi-use type variables that have a -_ suffix.
     - Reports single-use type variables that don't have a -_ suffix.
 
