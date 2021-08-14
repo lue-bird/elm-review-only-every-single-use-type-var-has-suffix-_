@@ -20,9 +20,3 @@ look like this:
 | ✓ ...    | correct |
 | -< ...   | split   |
 | >- ...   | merge   |
-
-#### others
-| mark        | means         |
-| :---------- | :------------ |
-| #...        | see           |
-| ! ...       | attention     |
