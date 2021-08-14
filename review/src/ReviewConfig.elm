@@ -34,6 +34,7 @@ import OnlyAllSingleUseTypeVarsEndWith_
 import NoSinglePatternCase
 import NoLeftPizza
 import NoBooleanCase
+import OnlyAllSingleUseTypeVarsEndWith_
 
 
 config : List Rule
@@ -44,7 +45,7 @@ config =
         |> Rule.ignoreErrorsForDirectories [ "tests/" ]
     , NoExposingEverything.rule
     , NoForbiddenWords.rule [ "REPLACEME", "TODO", "todo" ]
-    , NoImportingEverything.rule [ "Nats", "TypeNats" ]
+    , NoImportingEverything.rule [ "Nats" ]
     , NoMissingTypeAnnotation.rule
     , NoMissingTypeExpose.rule
     , NoUnused.CustomTypeConstructors.rule []
@@ -60,4 +61,5 @@ config =
     , NoSinglePatternCase.rule
     , NoLeftPizza.rule NoLeftPizza.Any
     , NoBooleanCase.rule
+    , OnlyAllSingleUseTypeVarsEndWith_.rule
     ]
