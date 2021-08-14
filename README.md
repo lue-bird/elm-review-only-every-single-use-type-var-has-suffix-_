@@ -45,7 +45,7 @@ which sadly doesn't exist 😢
 
 ## Provided rules
 
-- [`OnlyAllSingleUseTypeVarsEndWith_`](https://package.elm-lang.org/packages/lue-bird/elm-review-single-use-type-vars-end-with-underscore/2.0.1/OnlyAllSingleUseTypeVarsEndWith_)
+- [`OnlyAllSingleUseTypeVarsEndWith_`](OnlyAllSingleUseTypeVarsEndWith_)
     - Reports multi-use type variables that have a -_ suffix.
     - Reports single-use type variables that don't have a -_ suffix.
 
