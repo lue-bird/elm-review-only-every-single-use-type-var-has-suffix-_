@@ -12,14 +12,16 @@ when inside the directory containing this file.
 -}
 
 import Documentation.ReadmeLinksPointToCurrentVersion
+import NoBooleanCase
 import NoDebug.Log
 import NoDebug.TodoOrToString
 import NoExposingEverything
 import NoForbiddenWords
 import NoImportingEverything
+import NoLeftPizza
 import NoMissingTypeAnnotation
-import NoMissingTypeAnnotationInLetIn
 import NoMissingTypeExpose
+import NoSinglePatternCase
 import NoUnused.CustomTypeConstructorArgs
 import NoUnused.CustomTypeConstructors
 import NoUnused.Dependencies
@@ -28,13 +30,9 @@ import NoUnused.Modules
 import NoUnused.Parameters
 import NoUnused.Patterns
 import NoUnused.Variables
+import OnlyAllSingleUseTypeVarsEndWith_
 import Review.Rule as Rule exposing (Rule)
 import Simplify
-import OnlyAllSingleUseTypeVarsEndWith_
-import NoSinglePatternCase
-import NoLeftPizza
-import NoBooleanCase
-import OnlyAllSingleUseTypeVarsEndWith_
 
 
 config : List Rule
