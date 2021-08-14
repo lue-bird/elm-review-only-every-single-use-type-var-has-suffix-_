@@ -33,27 +33,13 @@ config =
 ### Fail
 
     a : a
-
-    type A a
-        = A
-
     a : a_ -> a_
-
-    type A a_
-        = A a_
 
 
 ### Success
 
     a : a_
-
-    type A a_
-        = A
-
     a : a -> a
-
-    type A a
-        = A a
 
 
 ## Don't use this
@@ -147,7 +133,7 @@ singleUseTypeVarDoesntEndWith_Error allTypeVars culprit =
         typeVarName =
             Node.value culprit
 
-        typeVarName_AleadyExist =
+        typeVarName_AlreadyExist =
             allTypeVars
                 |> List.map Node.value
                 |> List.member (typeVarName ++ "_")
@@ -160,8 +146,8 @@ singleUseTypeVarDoesntEndWith_Error allTypeVars culprit =
             ]
                 |> String.concat
         , details =
-            [ biggestReasonOfExistance
-            , if typeVarName_AleadyExist then
+            [ biggestReasonOfExistence
+            , if typeVarName_AlreadyExist then
                 [ "Choose a different name ("
                 , typeVarName
                 , "_ already exists)."
@@ -174,7 +160,7 @@ singleUseTypeVarDoesntEndWith_Error allTypeVars culprit =
             ]
         }
         (Node.range culprit)
-        (if typeVarName_AleadyExist then
+        (if typeVarName_AlreadyExist then
             []
 
          else
@@ -197,7 +183,7 @@ multiUseTypeVarsEndWith_Error allTypeVars culprits =
                 |> List.NonEmpty.toList
                 |> Range.combine
 
-        typeVarNameWithout_AleadyExist =
+        typeVarNameWithout_AlreadyExist =
             allTypeVars
                 |> List.map Node.value
                 |> List.member (culpritsName |> String.dropRight 1)
@@ -211,10 +197,10 @@ multiUseTypeVarsEndWith_Error allTypeVars culprits =
             ]
                 |> String.concat
         , details =
-            [ biggestReasonOfExistance
+            [ biggestReasonOfExistence
             , "Rename one of them if this was an accident. "
             , [ "If it wasn't an accident, "
-              , if typeVarNameWithout_AleadyExist then
+              , if typeVarNameWithout_AlreadyExist then
                     [ "choose a different name ("
                     , culpritsName |> String.dropRight 1
                     , " already exists)."
@@ -228,7 +214,7 @@ multiUseTypeVarsEndWith_Error allTypeVars culprits =
             ]
         }
         culpritsRange
-        (if typeVarNameWithout_AleadyExist then
+        (if typeVarNameWithout_AlreadyExist then
             []
 
          else
@@ -248,8 +234,8 @@ multiUseTypeVarsEndWith_Error allTypeVars culprits =
         )
 
 
-biggestReasonOfExistance : String
-biggestReasonOfExistance =
+biggestReasonOfExistence : String
+biggestReasonOfExistence =
     "-_ at the end of a type variable is a good indication that it is used only in this one place."
 
 

@@ -14,20 +14,14 @@ collectTypeVarsFromDeclaration declaration =
                 Nothing ->
                     []
 
-                Just type_ ->
-                    (type_ |> Node.value |> .typeAnnotation)
-                        |> allTypeVarsInType
-
-        CustomTypeDeclaration { generics, constructors } ->
-            generics
-                ++ (constructors
-                        |> List.map (Node.value >> .arguments)
-                        |> List.concatMap
-                            (List.concatMap allTypeVarsInType)
-                   )
+                Just (Node _ { typeAnnotation }) ->
+                    typeAnnotation |> allTypeVarsInType
 
         PortDeclaration { typeAnnotation } ->
             allTypeVarsInType typeAnnotation
+
+        CustomTypeDeclaration _ ->
+            []
 
         AliasDeclaration _ ->
             []

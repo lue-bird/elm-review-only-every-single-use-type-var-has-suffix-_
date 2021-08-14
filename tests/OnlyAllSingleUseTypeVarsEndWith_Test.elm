@@ -115,26 +115,6 @@ a =
 """
                     ]
         )
-    , test "error in custom type"
-        (\() ->
-            """
-module A exposing (..)
-
-type A a = A
-"""
-                |> Review.Test.run rule
-                |> Review.Test.expectErrors
-                    [ singleUseTypeVarDoesntEndWith_Error
-                        { typeVar = "a"
-                        , under = "a"
-                        }
-                        |> Review.Test.whenFixed """
-module A exposing (..)
-
-type A a_ = A
-"""
-                    ]
-        )
     , test "error in complex type"
         (\() ->
             """
@@ -172,7 +152,7 @@ singleUseTypeVarDoesntEndWith_Error { typeVar, under } =
             ]
                 |> String.concat
         , details =
-            [ biggestReasonOfExistance
+            [ biggestReasonOfExistence
             , "Add the -_ suffix (there's a fix available for that)."
             ]
         , under = under
@@ -301,26 +281,6 @@ a =
 """
                     ]
         )
-    , test "error in custom type"
-        (\() ->
-            """
-module A exposing (..)
-
-type A a_ = A a_
-"""
-                |> Review.Test.run rule
-                |> Review.Test.expectErrors
-                    [ multiUseTypeVarsEndWith_Error
-                        { typeVar = "a_"
-                        , under = "a_ = A a_"
-                        }
-                        |> Review.Test.whenFixed """
-module A exposing (..)
-
-type A a = A a
-"""
-                    ]
-        )
     , test "error in complex type"
         (\() ->
             """
@@ -357,7 +317,7 @@ multiUseTypeVarsEndWith_Error { typeVar, under } =
                 ++ " is used in multiple places,"
                 ++ " despite being marked as single-use with the -_ suffix."
         , details =
-            [ biggestReasonOfExistance
+            [ biggestReasonOfExistence
             , "Rename one of them if this was an accident. "
             , [ "If it wasn't an accident, "
               , "remove the -_ suffix (there's a fix available for that)."
@@ -368,6 +328,6 @@ multiUseTypeVarsEndWith_Error { typeVar, under } =
         }
 
 
-biggestReasonOfExistance : String
-biggestReasonOfExistance =
+biggestReasonOfExistence : String
+biggestReasonOfExistence =
     "-_ at the end of a type variable is a good indication that it is used only in this one place."
