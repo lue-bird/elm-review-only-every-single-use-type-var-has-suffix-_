@@ -174,7 +174,7 @@ module A exposing (..)
 a : Result ({ rec_ | field : Arr (In Char Never) () }) -> String
 a =
     let
-        b : rec
+        b : rec_
         b = b
     in
     a
