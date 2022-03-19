@@ -1,4 +1,4 @@
-module Common exposing (collectTypeVarsFromDeclaration, groupBy, multiUseTypeVarsEndWith_ErrorInfo, singleUseTypeVarDoesntEndWith_ErrorInfo)
+module Common exposing (collectTypeVarsFromDeclaration, listGroupBy, multiUseTypeVarsEndWith_ErrorInfo, singleUseTypeVarDoesntEndWith_ErrorInfo)
 
 import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Expression exposing (Expression(..), LetDeclaration(..))
@@ -214,8 +214,8 @@ allTypeVarsInType type_ =
 --
 
 
-groupBy : (a -> comparable_) -> List a -> List ( a, List a )
-groupBy toComparable list =
+listGroupBy : (a -> comparable_) -> List a -> List ( a, List a )
+listGroupBy toComparable list =
     list
         |> List.sortBy toComparable
         |> List.groupWhile
@@ -240,10 +240,10 @@ singleUseTypeVarDoesntEndWith_ErrorInfo { typeVar, typeVar_Exists } =
         [ biggestReasonOfExistence
         , if typeVar_Exists then
             String.concat
-                [ "Choose a different name (`"
+                [ "Don't rename to `"
                 , typeVar
-                , "_` already exists)."
-                , " Then add the -_ suffix."
+                , "`. Such a type variable already exists."
+                , " Try choosing a different name with a -_ suffix."
                 ]
 
           else
