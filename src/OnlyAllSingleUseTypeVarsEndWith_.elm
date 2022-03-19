@@ -54,7 +54,9 @@ rule : Rule
 rule =
     Rule.newModuleRuleSchema "OnlyAllSingleUseTypeVarsEndWith_" ()
         |> Rule.withSimpleDeclarationVisitor
-            (declarationCheck << Node.value)
+            (\(Node _ declaration) ->
+                declaration |> declarationCheck
+            )
         |> Rule.fromModuleRuleSchema
 
 
@@ -62,15 +64,15 @@ declarationCheck : Declaration -> List (Rule.Error {})
 declarationCheck declaration =
     declaration
         |> collectTypeVarsFromDeclaration
-        |> checkTypeVars
+        |> typeVarsCheck
 
 
-checkTypeVars :
+typeVarsCheck :
     { inAnnotation : List (Node String)
     , inLets : List (Node String)
     }
     -> List (Rule.Error {})
-checkTypeVars typeVars =
+typeVarsCheck typeVars =
     let
         ( typeVarsWith_, typeVarsWithout_ ) =
             typeVars.inAnnotation
@@ -87,7 +89,7 @@ checkTypeVars typeVars =
                     case typeVarOccurrencesWithout_ of
                         ( onlyTypeVarOccurrenceWithout_, [] ) ->
                             [ onlyTypeVarOccurrenceWithout_
-                                |> singleUseTypeVarDoesntEndWith_Error typeVars
+                                |> singleUseTypeVarWithout_Error typeVars
                             ]
 
                         ( _, _ :: _ ) ->
@@ -98,17 +100,17 @@ checkTypeVars typeVars =
                 (\occurrences ->
                     List.NonEmpty.length occurrences >= 2
                 )
-            |> List.map (multiUseTypeVarsEndWith_Error typeVars)
+            |> List.map (multiUseTypeVarsWith_Error typeVars)
         ]
 
 
-singleUseTypeVarDoesntEndWith_Error :
+singleUseTypeVarWithout_Error :
     { inAnnotation : List (Node String)
     , inLets : List (Node String)
     }
     -> Node String
     -> Rule.Error {}
-singleUseTypeVarDoesntEndWith_Error typeVars typeVarNode =
+singleUseTypeVarWithout_Error typeVars typeVarNode =
     let
         (Node typeVarRange typeVar) =
             typeVarNode
@@ -138,13 +140,13 @@ singleUseTypeVarDoesntEndWith_Error typeVars typeVarNode =
         )
 
 
-multiUseTypeVarsEndWith_Error :
+multiUseTypeVarsWith_Error :
     { inAnnotation : List (Node String)
     , inLets : List (Node String)
     }
     -> List.NonEmpty.NonEmpty (Node String)
     -> Rule.Error {}
-multiUseTypeVarsEndWith_Error typeVars culprits =
+multiUseTypeVarsWith_Error typeVars culprits =
     let
         typeVar =
             culprits |> List.NonEmpty.head |> Node.value
@@ -170,13 +172,19 @@ multiUseTypeVarsEndWith_Error typeVars culprits =
             []
 
          else
-            culprits
-                |> List.NonEmpty.map
+            List.concat
+                [ culprits |> List.NonEmpty.toList
+                , typeVars.inLets
+                    |> List.filter
+                        (\(Node _ typeVarInLet) ->
+                            typeVarInLet == typeVar
+                        )
+                ]
+                |> List.map
                     (\(Node { end } _) ->
                         Fix.removeRange
                             { start = { end | column = end.column - 1 }
                             , end = end
                             }
                     )
-                |> List.NonEmpty.toList
         )
