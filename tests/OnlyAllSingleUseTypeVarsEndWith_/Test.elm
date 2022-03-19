@@ -1,5 +1,6 @@
-module OnlyAllSingleUseTypeVarsEndWith_Test exposing (all)
+module OnlyAllSingleUseTypeVarsEndWith_.Test exposing (all)
 
+import Common exposing (multiUseTypeVarsEndWith_ErrorInfo, singleUseTypeVarDoesntEndWith_ErrorInfo)
 import OnlyAllSingleUseTypeVarsEndWith_ exposing (rule)
 import Review.Test
 import Test exposing (Test, describe, test)
@@ -8,59 +9,98 @@ import Test exposing (Test, describe, test)
 all : Test
 all =
     describe "OnlyAllSingleUseTypeVarsEndWith_"
-        [ describe "single-use type variables end with _"
-            singleUseTypeVarsEndWith_Tests
-        , describe "no multi-use type variables end with _"
-            noMultiUseTypeVarsEndWith_
-        , test "complex type with both errors"
-            (\() ->
-                """
-module A exposing (..)
-
-a =
-    let
-        b : ( Task x_ (Typed (Checked (Public a_))), Maybe yay, Result x_ )
-        b = b
-    in
-    ()
-"""
-                    |> Review.Test.run rule
-                    |> Review.Test.expectErrors
-                        [ singleUseTypeVarDoesntEndWith_Error
-                            { typeVar = "yay"
-                            , under = "yay"
-                            }
-                            |> Review.Test.whenFixed """
-module A exposing (..)
-
-a =
-    let
-        b : ( Task x_ (Typed (Checked (Public a_))), Maybe yay_, Result x_ )
-        b = b
-    in
-    ()
-"""
-                        , multiUseTypeVarsEndWith_Error
-                            { typeVar = "x_"
-                            , under = "x_ (Typed (Checked (Public a_))), Maybe yay, Result x_"
-                            }
-                            |> Review.Test.whenFixed """
-module A exposing (..)
-
-a =
-    let
-        b : ( Task x (Typed (Checked (Public a_))), Maybe yay, Result x )
-        b = b
-    in
-    ()
-"""
-                        ]
-            )
+        [ describe "single-use type variable without suffix -_"
+            [ describe "report" reportSingleUseTypeVarsWithout_
+            , describe "unreported" unreportedSingleUseTypeVarsWithout_
+            ]
+        , describe "multi-use type variables with suffix _"
+            [ describe "report" reportMultiUseTypeVarsWith_
+            , describe "unreported" unreportedMultiUseTypeVarsWith_
+            ]
+        , complexTypeWithBothErrors
         ]
 
 
-singleUseTypeVarsEndWith_Tests : List Test
-singleUseTypeVarsEndWith_Tests =
+unreportedMultiUseTypeVarsWith_ : List Test
+unreportedMultiUseTypeVarsWith_ =
+    [ test "multi-use -_ in let not reported"
+        (\() ->
+            """
+module A exposing (..)
+
+a : ()
+a =
+    let
+        b : ( c_, c_ )
+        b = b
+    in
+    ()
+"""
+                |> Review.Test.run rule
+                |> Review.Test.expectNoErrors
+        )
+    ]
+
+
+unreportedSingleUseTypeVarsWithout_ : List Test
+unreportedSingleUseTypeVarsWithout_ =
+    [ test "single-use without -_ in let not reported"
+        (\() ->
+            """
+module A exposing (..)
+
+a : ()
+a =
+    let
+        b : c
+        b = b
+    in
+    ()
+"""
+                |> Review.Test.run rule
+                |> Review.Test.expectNoErrors
+        )
+    ]
+
+
+complexTypeWithBothErrors : Test
+complexTypeWithBothErrors =
+    test "complex type with both errors"
+        (\() ->
+            """
+module A exposing (..)
+
+a : ( Task x_ (Typed (Checked (Public a_))), Maybe yay, Result x_ )
+a = a
+"""
+                |> Review.Test.run rule
+                |> Review.Test.expectErrors
+                    [ singleUseTypeVarDoesntEndWith_Error
+                        { typeVar = "yay"
+                        , under = "yay"
+                        }
+                        |> Review.Test.whenFixed """
+module A exposing (..)
+
+a : ( Task x_ (Typed (Checked (Public a_))), Maybe yay_, Result x_ )
+a = a
+"""
+                    , multiUseTypeVarsEndWith_Error
+                        { typeVar = "x_"
+                        , under = "x_ (Typed (Checked (Public a_))), Maybe yay, Result x_"
+                        }
+                        |> Review.Test.whenFixed """
+module A exposing (..)
+
+a : ( Task x (Typed (Checked (Public a_))), Maybe yay, Result x )
+a = a
+"""
+                    ]
+        )
+
+
+reportSingleUseTypeVarsWithout_ : List Test
+reportSingleUseTypeVarsWithout_ =
     [ test "error in function"
         (\() ->
             """
@@ -80,38 +120,6 @@ module A exposing (..)
 
 a : b_ -> ()
 a _ = ()
-"""
-                    ]
-        )
-    , test "error in let"
-        (\() ->
-            """
-module A exposing (..)
-
-a : ()
-a =
-    let
-        b : c
-        b = b
-    in
-    ()
-"""
-                |> Review.Test.run rule
-                |> Review.Test.expectErrors
-                    [ singleUseTypeVarDoesntEndWith_Error
-                        { typeVar = "c"
-                        , under = "c"
-                        }
-                        |> Review.Test.whenFixed """
-module A exposing (..)
-
-a : ()
-a =
-    let
-        b : c_
-        b = b
-    in
-    ()
 """
                     ]
         )
@@ -144,23 +152,20 @@ singleUseTypeVarDoesntEndWith_Error :
     { typeVar : String, under : String }
     -> Review.Test.ExpectedError
 singleUseTypeVarDoesntEndWith_Error { typeVar, under } =
+    let
+        { message, details } =
+            singleUseTypeVarDoesntEndWith_ErrorInfo
+                { typeVar = typeVar, typeVar_Exists = False }
+    in
     Review.Test.error
-        { message =
-            [ "The type variable "
-            , typeVar
-            , " isn't marked as single-use with a -_ suffix."
-            ]
-                |> String.concat
-        , details =
-            [ biggestReasonOfExistence
-            , "Add the -_ suffix (there's a fix available for that)."
-            ]
+        { message = message
+        , details = details
         , under = under
         }
 
 
-noMultiUseTypeVarsEndWith_ : List Test
-noMultiUseTypeVarsEndWith_ =
+reportMultiUseTypeVarsWith_ : List Test
+reportMultiUseTypeVarsWith_ =
     [ test "error in function"
         (\() ->
             """
@@ -249,38 +254,6 @@ a = a
 """
                     ]
         )
-    , test "error in let"
-        (\() ->
-            """
-module A exposing (..)
-
-a : ()
-a =
-    let
-        b : ( c_, c_ )
-        b = b
-    in
-    ()
-"""
-                |> Review.Test.run rule
-                |> Review.Test.expectErrors
-                    [ multiUseTypeVarsEndWith_Error
-                        { typeVar = "c_"
-                        , under = "c_, c_"
-                        }
-                        |> Review.Test.whenFixed """
-module A exposing (..)
-
-a : ()
-a =
-    let
-        b : ( c, c )
-        b = b
-    in
-    ()
-"""
-                    ]
-        )
     , test "error in complex type"
         (\() ->
             """
@@ -310,24 +283,13 @@ multiUseTypeVarsEndWith_Error :
     { typeVar : String, under : String }
     -> Review.Test.ExpectedError
 multiUseTypeVarsEndWith_Error { typeVar, under } =
+    let
+        { message, details } =
+            multiUseTypeVarsEndWith_ErrorInfo
+                { typeVar = typeVar, typeVarWithout_Exists = False }
+    in
     Review.Test.error
-        { message =
-            "The type variable "
-                ++ typeVar
-                ++ " is used in multiple places,"
-                ++ " despite being marked as single-use with the -_ suffix."
-        , details =
-            [ biggestReasonOfExistence
-            , "Rename one of them if this was an accident. "
-            , [ "If it wasn't an accident, "
-              , "remove the -_ suffix (there's a fix available for that)."
-              ]
-                |> String.concat
-            ]
+        { message = message
+        , details = details
         , under = under
         }
-
-
-biggestReasonOfExistence : String
-biggestReasonOfExistence =
-    "-_ at the end of a type variable is a good indication that it is used only in this one place."
