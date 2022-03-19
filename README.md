@@ -1,4 +1,4 @@
-# elm-review-single-use-type-vars-end-with-underscore
+# [elm-review-single-use-type-vars-end-with-underscore](https://package.elm-lang.org/packages/lue-bird/elm-review-single-use-type-vars-end-with-underscore/latest/)
 
 [`elm-review`](https://package.elm-lang.org/packages/jfmengels/elm-review/latest/) rule
 to make sure that type variables on module scope declarations
