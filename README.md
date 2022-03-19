@@ -64,7 +64,11 @@ config =
 ```
 
 
-## Don't use this
+## Why you might not want this
 
-- If you already use the -_ suffix in (multi-use) type variables.
-- If you want to keep the standard way of naming type variables for consistency.
+  - You want to keep the conventional way of naming type variables for consistency?
+  - You already use the -\_ suffix in possibly multi-use type variables?
+  - You dislike having possibly multi-use -\_ suffixed type variables in your let declarations?
+
+Ultimately, the solution to fix all three
+would be an IDE extension that de-emphasizes (less contrast, ...) single-use type variables.
