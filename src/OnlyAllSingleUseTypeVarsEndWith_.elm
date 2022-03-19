@@ -6,7 +6,7 @@ module OnlyAllSingleUseTypeVarsEndWith_ exposing (rule)
 
 -}
 
-import Common exposing (collectTypeVarsFromDeclaration, groupBy, multiUseTypeVarsEndWith_ErrorInfo, singleUseTypeVarDoesntEndWith_ErrorInfo)
+import Common exposing (collectTypeVarsFromDeclaration, listGroupBy, multiUseTypeVarsEndWith_ErrorInfo, singleUseTypeVarDoesntEndWith_ErrorInfo)
 import Elm.Syntax.Declaration exposing (Declaration)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range as Range
@@ -72,13 +72,9 @@ checkTypeVars :
     -> List (Rule.Error {})
 checkTypeVars typeVars =
     let
-        counts test =
-            \occurrences ->
-                List.NonEmpty.length occurrences |> test
-
         ( typeVarsWith_, typeVarsWithout_ ) =
             typeVars.inAnnotation
-                |> groupBy Node.value
+                |> listGroupBy Node.value
                 |> List.partition
                     (\( Node _ typeVarName, _ ) ->
                         typeVarName |> String.endsWith "_"
@@ -98,7 +94,10 @@ checkTypeVars typeVars =
                             []
                 )
         , typeVarsWith_
-            |> List.filter (counts (\n -> n >= 2))
+            |> List.filter
+                (\occurrences ->
+                    List.NonEmpty.length occurrences >= 2
+                )
             |> List.map (multiUseTypeVarsEndWith_Error typeVars)
         ]
 
@@ -129,7 +128,13 @@ singleUseTypeVarDoesntEndWith_Error typeVars typeVarNode =
             []
 
          else
-            [ Fix.insertAt typeVarRange.end "_" ]
+            typeVars.inLets
+                |> List.filter (\(Node _ typeVarInLet) -> typeVarInLet == typeVar)
+                |> (::) typeVarNode
+                |> List.concatMap
+                    (\(Node typeVarInLetRange _) ->
+                        [ Fix.insertAt typeVarInLetRange.end "_" ]
+                    )
         )
 
 
