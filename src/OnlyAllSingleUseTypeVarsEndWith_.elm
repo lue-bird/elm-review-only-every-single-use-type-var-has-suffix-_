@@ -40,8 +40,6 @@ config =
 
     drop : Int -> List element -> List element
 
-y
-
 
 ## Why you might not want this
 
