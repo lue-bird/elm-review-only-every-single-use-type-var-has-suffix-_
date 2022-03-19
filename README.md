@@ -51,7 +51,7 @@ at :
 
 ## Provided rules
 
-[`OnlyAllSingleUseTypeVarsEndWith_`](OnlyAllSingleUseTypeVarsEndWith_)
+🔧[`OnlyAllSingleUseTypeVarsEndWith_`](OnlyAllSingleUseTypeVarsEndWith_)
 reports in types of module scope declarations
 
   - single-use type variables that don't have a -\_ suffix
