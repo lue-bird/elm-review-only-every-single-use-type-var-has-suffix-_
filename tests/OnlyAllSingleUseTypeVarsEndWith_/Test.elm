@@ -145,23 +145,43 @@ a = a
 """
                     ]
         )
-    ]
+    , test "let type variable reference is updated"
+        (\() ->
+            """
+module A exposing (..)
 
-
-singleUseTypeVarDoesntEndWith_Error :
-    { typeVar : String, under : String }
-    -> Review.Test.ExpectedError
-singleUseTypeVarDoesntEndWith_Error { typeVar, under } =
+a : Result ({ rec | field : Arr (In Char Never) () }) -> String
+a =
     let
-        { message, details } =
-            singleUseTypeVarDoesntEndWith_ErrorInfo
-                { typeVar = typeVar, typeVar_Exists = False }
+        b : rec
+        b = b
     in
-    Review.Test.error
-        { message = message
-        , details = details
-        , under = under
-        }
+    a
+"""
+                |> Review.Test.run rule
+                |> Review.Test.expectErrors
+                    [ singleUseTypeVarDoesntEndWith_Error
+                        { typeVar = "rec"
+                        , under = "rec"
+                        }
+                        |> Review.Test.atExactly
+                            { start = { row = 4, column = 15 }
+                            , end = { row = 4, column = 18 }
+                            }
+                        |> Review.Test.whenFixed """
+module A exposing (..)
+
+a : Result ({ rec_ | field : Arr (In Char Never) () }) -> String
+a =
+    let
+        b : rec
+        b = b
+    in
+    a
+"""
+                    ]
+        )
+    ]
 
 
 reportMultiUseTypeVarsWith_ : List Test
@@ -276,7 +296,55 @@ a = a
 """
                     ]
         )
+    , test "let type variable reference is updated"
+        (\() ->
+            """
+module A exposing (..)
+
+a : Result ({ a_ | field : Arr (In a_ Never) () }) -> ( Float, a_, Int )
+a =
+    let
+        b : a_
+        b = b
+    in
+    a
+"""
+                |> Review.Test.run rule
+                |> Review.Test.expectErrors
+                    [ multiUseTypeVarsEndWith_Error
+                        { typeVar = "a_"
+                        , under = "a_ | field : Arr (In a_ Never) () }) -> ( Float, a_"
+                        }
+                        |> Review.Test.whenFixed """
+module A exposing (..)
+
+a : Result ({ a | field : Arr (In a Never) () }) -> ( Float, a, Int )
+a =
+    let
+        b : a
+        b = b
+    in
+    a
+"""
+                    ]
+        )
     ]
+
+
+singleUseTypeVarDoesntEndWith_Error :
+    { typeVar : String, under : String }
+    -> Review.Test.ExpectedError
+singleUseTypeVarDoesntEndWith_Error { typeVar, under } =
+    let
+        { message, details } =
+            singleUseTypeVarDoesntEndWith_ErrorInfo
+                { typeVar = typeVar, typeVar_Exists = False }
+    in
+    Review.Test.error
+        { message = message
+        , details = details
+        , under = under
+        }
 
 
 multiUseTypeVarsEndWith_Error :
