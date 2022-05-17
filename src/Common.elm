@@ -1,7 +1,7 @@
 module Common exposing (collectTypeVarsFromDeclaration, listGroupBy, multiUseTypeVarsEndWith_ErrorInfo, singleUseTypeVarDoesntEndWith_ErrorInfo)
 
 import Elm.Syntax.Declaration exposing (Declaration(..))
-import Elm.Syntax.Expression exposing (Expression(..), LetDeclaration(..))
+import Elm.Syntax.Expression as Expression exposing (Expression(..), LetDeclaration(..))
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 import List.Extra as List
@@ -54,7 +54,7 @@ collectTypeVarsFromDeclaration declaration =
                                 _ ->
                                     []
                             , expression
-                                |> subExpressions
+                                |> expressionsInner
                                 |> List.map Node.value
                                 |> List.concatMap allTypeVarsInExpression
                             ]
@@ -84,16 +84,84 @@ collectTypeVarsFromDeclaration declaration =
             noTypeVars
 
 
-{-| Get all immediate child expressions of an expression.
--}
-subExpressions : Expression -> List (Node Expression)
-subExpressions expression =
+expressionsInner : Expression -> List (Node Expression)
+expressionsInner expression =
     case expression of
-        LetExpression letBlock ->
+        Expression.UnitExpr ->
+            []
+
+        Expression.Integer _ ->
+            []
+
+        Expression.Hex _ ->
+            []
+
+        Expression.Floatable _ ->
+            []
+
+        Expression.Literal _ ->
+            []
+
+        Expression.CharLiteral _ ->
+            []
+
+        Expression.GLSLExpression _ ->
+            []
+
+        Expression.RecordAccessFunction _ ->
+            []
+
+        Expression.FunctionOrValue _ _ ->
+            []
+
+        Expression.Operator _ ->
+            []
+
+        Expression.PrefixOperator _ ->
+            []
+
+        Expression.LambdaExpression lambda ->
+            [ lambda.expression ]
+
+        Expression.RecordAccess record _ ->
+            [ record ]
+
+        Expression.ParenthesizedExpression expression_ ->
+            [ expression_ ]
+
+        Expression.Negation expression_ ->
+            [ expression_ ]
+
+        Expression.OperatorApplication _ _ leftExpression rightExpression ->
+            [ leftExpression, rightExpression ]
+
+        Expression.IfBlock predExpr thenExpr elseExpr ->
+            [ predExpr, thenExpr, elseExpr ]
+
+        Expression.ListExpr expressions ->
+            expressions
+
+        Expression.TupledExpression expressions ->
+            expressions
+
+        Expression.Application expressions ->
+            expressions
+
+        Expression.RecordExpr fields ->
+            fields |> List.map (\(Node _ ( _, value )) -> value)
+
+        Expression.RecordUpdateExpression record updaters ->
+            (record |> Node.map (FunctionOrValue []))
+                :: (updaters |> List.map (\(Node _ ( _, newValue )) -> newValue))
+
+        Expression.CaseExpression caseBlock ->
+            caseBlock.expression
+                :: (caseBlock.cases |> List.map (\( _, expression_ ) -> expression_))
+
+        Expression.LetExpression letBlock ->
             letBlock.declarations
-                |> List.map Node.value
                 |> List.map
-                    (\letDeclaration ->
+                    (\(Node _ letDeclaration) ->
                         case letDeclaration of
                             LetFunction { declaration } ->
                                 declaration |> Node.value |> .expression
@@ -102,77 +170,6 @@ subExpressions expression =
                                 expression_
                     )
                 |> (::) letBlock.expression
-
-        ListExpr expressions ->
-            expressions
-
-        TupledExpression expressions ->
-            expressions
-
-        RecordExpr fields ->
-            fields |> List.map (\(Node _ ( _, value )) -> value)
-
-        RecordUpdateExpression record updaters ->
-            (record |> Node.map (FunctionOrValue []))
-                :: (updaters |> List.map (\(Node _ ( _, newValue )) -> newValue))
-
-        Application expressions ->
-            expressions
-
-        CaseExpression caseBlock ->
-            caseBlock.expression
-                :: (caseBlock.cases |> List.map (\( _, expression_ ) -> expression_))
-
-        OperatorApplication _ _ e1 e2 ->
-            [ e1, e2 ]
-
-        IfBlock predExpr thenExpr elseExpr ->
-            [ predExpr, thenExpr, elseExpr ]
-
-        LambdaExpression lambda ->
-            [ lambda.expression ]
-
-        RecordAccess record _ ->
-            [ record ]
-
-        ParenthesizedExpression expression_ ->
-            [ expression_ ]
-
-        Negation expression_ ->
-            [ expression_ ]
-
-        UnitExpr ->
-            []
-
-        Integer _ ->
-            []
-
-        Hex _ ->
-            []
-
-        Floatable _ ->
-            []
-
-        Literal _ ->
-            []
-
-        CharLiteral _ ->
-            []
-
-        GLSLExpression _ ->
-            []
-
-        RecordAccessFunction _ ->
-            []
-
-        FunctionOrValue _ _ ->
-            []
-
-        Operator _ ->
-            []
-
-        PrefixOperator _ ->
-            []
 
 
 allTypeVarsInType : Node TypeAnnotation -> List (Node String)
