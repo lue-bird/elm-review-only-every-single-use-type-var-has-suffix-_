@@ -51,6 +51,7 @@ config =
 rule : Rule
 rule =
     Rule.newModuleRuleSchema "OnlyAllSingleUseTypeVarsEndWith_" ()
+        |> Rule.providesFixesForModuleRule
         |> Rule.withSimpleDeclarationVisitor
             (\(Node _ declaration) ->
                 declaration |> declarationCheck
