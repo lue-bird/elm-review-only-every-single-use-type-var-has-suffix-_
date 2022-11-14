@@ -1,5 +1,10 @@
 # changelog
 
+#### 2.0.3
+
+  - `elm-review` → >= 2.10.0
+      - `providesFixes...` add
+
 #### 2.0.2
 
   - removed fixes for let declaration types because -\_ suffixed type variables could come from the top-level declaration type
