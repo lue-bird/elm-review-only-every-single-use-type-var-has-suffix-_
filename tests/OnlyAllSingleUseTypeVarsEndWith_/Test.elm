@@ -1,6 +1,6 @@
 module OnlyAllSingleUseTypeVarsEndWith_.Test exposing (all)
 
-import Common exposing (multiUseTypeVarsEndWith_ErrorInfo, singleUseTypeVarDoesntEndWith_ErrorInfo)
+import Help exposing (multiUseTypeVarsEndWith_ErrorInfo, singleUseTypeVarDoesntEndWith_ErrorInfo)
 import OnlyAllSingleUseTypeVarsEndWith_ exposing (rule)
 import Review.Test
 import Test exposing (Test, describe, test)

@@ -6,10 +6,10 @@ module OnlyAllSingleUseTypeVarsEndWith_ exposing (rule)
 
 -}
 
-import Common exposing (collectTypeVarsFromDeclaration, listGroupBy, multiUseTypeVarsEndWith_ErrorInfo, singleUseTypeVarDoesntEndWith_ErrorInfo)
 import Elm.Syntax.Declaration exposing (Declaration)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range as Range
+import Help exposing (collectTypeVarsFromDeclaration, listGroupBy, multiUseTypeVarsEndWith_ErrorInfo, singleUseTypeVarDoesntEndWith_ErrorInfo)
 import List.NonEmpty
 import Review.Fix as Fix
 import Review.Rule as Rule exposing (Rule)
