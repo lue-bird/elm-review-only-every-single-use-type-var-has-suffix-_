@@ -1,7 +1,7 @@
 {
     "type": "package",
     "name": "lue-bird/elm-review-single-use-type-vars-end-with-underscore",
-    "summary": "review rule: type variables only used once end with -_",
+    "summary": "elm-review: type variables only used once end with -_",
     "license": "MIT",
     "version": "2.0.2",
     "exposed-modules": [
