@@ -1,6 +1,6 @@
-# [elm-review-single-use-type-vars-end-with-underscore](https://package.elm-lang.org/packages/lue-bird/elm-review-single-use-type-vars-end-with-underscore/latest/)
+# [elm-review-single-use-type-vars-end-with-underscore](https://dark.elm.dmy.fr/packages/lue-bird/elm-review-single-use-type-vars-end-with-underscore/latest/)
 
-The [`elm-review`](https://package.elm-lang.org/packages/jfmengels/elm-review/latest/) rule
+The [`elm-review`](https://dark.elm.dmy.fr/packages/jfmengels/elm-review/latest/) rule
 🔧[`OnlyAllSingleUseTypeVarsEndWith_`](OnlyAllSingleUseTypeVarsEndWith_)
 enforces that type variables which are only used once
 in annotations of module scope declaration
