@@ -4,7 +4,7 @@
 
   - remove dependency `elm-community/list-extra`
   - remove dependency `turboMaCk/non-empty-list-alias`
-  - TODO: fix bug where type variables that are keywords suffixed with underscore were reported as having unnecessary underscores
+  - fix bug where type variables that are keywords suffixed with underscore were reported as having unnecessary underscores
   - faster
 
 #### 2.0.3

@@ -93,7 +93,7 @@ a =
                             ]
                 )
             ]
-        , Test.test "single-use without -_ in let not reported"
+        , Test.test "single-use type variable without -_ in let not reported"
             (\() ->
                 """
 module A exposing (..)
@@ -109,6 +109,17 @@ a =
                     |> Review.Test.run rule
                     |> Review.Test.expectNoErrors
             )
+        , Test.test "single-use type variable named keyword with -_ not reported"
+            (\() ->
+                """
+module A exposing (..)
+
+a : type_ -> ()
+a _ = ()
+"""
+                    |> Review.Test.run rule
+                    |> Review.Test.expectNoErrors
+            )
         , Test.test "multi-use type variables with suffix -_ in let not reported"
             (\() ->
                 """
@@ -120,6 +131,18 @@ a =
         b : ( c_, c_ )
         b = b
     in
+    ()
+"""
+                    |> Review.Test.run rule
+                    |> Review.Test.expectNoErrors
+            )
+        , Test.test "multi-use type variables named keyword with suffix -_ not reported"
+            (\() ->
+                """
+module A exposing (..)
+
+a : ( type_, type_ ) -> ()
+a _ =
     ()
 """
                     |> Review.Test.run rule

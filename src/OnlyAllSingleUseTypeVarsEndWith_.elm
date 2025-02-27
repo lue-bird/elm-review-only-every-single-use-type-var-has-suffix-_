@@ -74,15 +74,39 @@ typeVarsCheck :
     -> List (Review.Rule.Error {})
 typeVarsCheck typeVars =
     let
-        ( typeVarsWithUnderscore, typeVarsWithoutUnderscore ) =
+        typeVarsGrouped =
             typeVars.inAnnotation
                 |> typeVariableNodesGroupByName
-                |> Dict.partition
-                    (\typeVariableName _ ->
-                        typeVariableName |> String.endsWith "_"
+                |> Dict.foldl
+                    (\typeVariableName occurrences soFar ->
+                        if typeVariableName |> String.endsWith "_" then
+                            let
+                                typeVariableWithoutEndingUnderscore : String
+                                typeVariableWithoutEndingUnderscore =
+                                    typeVariableName |> String.dropRight 1
+                            in
+                            if isReserved typeVariableWithoutEndingUnderscore then
+                                soFar
+
+                            else
+                                { withUnderscore =
+                                    soFar.withUnderscore
+                                        |> Dict.insert typeVariableName occurrences
+                                , withoutUnderscore = soFar.withoutUnderscore
+                                }
+
+                        else
+                            { withUnderscore = soFar.withUnderscore
+                            , withoutUnderscore =
+                                soFar.withoutUnderscore
+                                    |> Dict.insert typeVariableName occurrences
+                            }
                     )
+                    { withUnderscore = Dict.empty
+                    , withoutUnderscore = Dict.empty
+                    }
     in
-    (typeVarsWithoutUnderscore
+    (typeVarsGrouped.withoutUnderscore
         |> Dict.foldl
             (\typeVariableName ( occurrenceWithoutUnderscoreRange, typeVarOccurrencesWithoutUnderscore ) errorsSoFar ->
                 case typeVarOccurrencesWithoutUnderscore of
@@ -97,7 +121,7 @@ typeVarsCheck typeVars =
             )
             []
     )
-        ++ (typeVarsWithUnderscore
+        ++ (typeVarsGrouped.withUnderscore
                 |> Dict.foldl
                     (\name ( occurrence0, occurrence1Up ) errorsSoFar ->
                         case occurrence1Up of
