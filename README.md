@@ -1,81 +1,68 @@
 # [elm-review-single-use-type-vars-end-with-underscore](https://package.elm-lang.org/packages/lue-bird/elm-review-single-use-type-vars-end-with-underscore/latest/)
 
-[`elm-review`](https://package.elm-lang.org/packages/jfmengels/elm-review/latest/) rule
-to make sure that type variables on module scope declarations
-which are only used once
-are marked with the suffix -\_.
+The [`elm-review`](https://package.elm-lang.org/packages/jfmengels/elm-review/latest/) rule
+🔧[`OnlyAllSingleUseTypeVarsEndWith_`](OnlyAllSingleUseTypeVarsEndWith_)
+enforces that type variables which are only used once
+in annotations of module scope declaration
+are marked with the suffix -\_ and other type variables are not.
 
 ## why would you want this?
 
--\_ at the end of a type variable is a good indication that it is used only in this one place.
+You can use -\_ at the end of a type variable to indicate that it is used only in this one place.
 
 Some types have a lot of type variables, most of them only used once.
-If you see a -\_
-
-  - you know not to focus on these
-    - -\_ in the result: can be inferred as anything
-    - -\_ in an argument: anything allowed
+If you see a -\_, you know not to focus on these
+  - -\_ in the result: can be inferred as anything
+  - -\_ in an argument: anything allowed
   
-  - through the review rule you can make sure that this type variable isn't used anywhere else
-    → 2 type variables can't accidentally be the same.
-
-### example
-
-Which one is easier to understand?
+The review rule makes sure that this type variable isn't used anywhere else
+so that 2 type variables can't accidentally be the same.
 
 ```elm
-at :
-    Nat (ArgIn indexMin minLengthMinus1 indexIfN)
-    -> LinearDirection
-    -> Arr (In (Nat1Plus minLengthMinus1) maxLength) element
-    -> element
+httpRequestSend :
+    { url : String
+    , method : String
+    , onResponse : Bytes -> msg
+    , headers :
+          List
+              { name : String
+              , value : String
+              }
+    , body : Maybe Bytes
+    }
+    -> Task error_ msg
 ```
+We can see at a glance that `error_` isn't related to an argument,
+it's free to take on any type whereas `msg` is something an argument has to provide.
+
+Likewise, if we see `-_` in an argument, we also know it's not used in any other part of the type.
 ```elm
-at :
-    Nat (ArgIn indexMin_ minLengthMinus1 indexIfN_)
-    -> LinearDirection
-    -> Arr (In (Nat1Plus minLengthMinus1) maxLength_) element
-    -> element
-```
-(from [typesafe-array: Arr.at](https://package.elm-lang.org/packages/lue-bird/elm-typesafe-array/latest/Arr#at))
-
-Once you're used to this, it feels similar to
-
-```elm
-at :
-    Nat (ArgIn _ minLengthMinus1 _)
-    -> LinearDirection
-    -> Arr (In (Nat1Plus minLengthMinus1) _) element
-    -> element
+nodeCount :
+    lockingTag
+    -> TaggedTree label_ lockingTag
+    -> Int
 ```
 
-## Provided rules
-
-🔧[`OnlyAllSingleUseTypeVarsEndWith_`](OnlyAllSingleUseTypeVarsEndWith_)
-reports in types of module scope declarations
-
-  - single-use type variables that don't have a -\_ suffix
-  - multi-use type variables that have a -\_ suffix
-
-## Configuration
+## configure
 
 ```elm
 module ReviewConfig exposing (config)
 
 import OnlyAllSingleUseTypeVarsEndWith_
-import Review.Rule exposing (Rule)
+import Review.Rule
 
-config : List Rule
+config : List Review.Rule.Rule
 config =
     [ OnlyAllSingleUseTypeVarsEndWith_.rule
     ]
 ```
 
-## Why you might not want this
+## why you might not want this
 
-  - You want to keep the conventional way of naming type variables for consistency?
-  - You already use the -\_ suffix in possibly multi-use type variables?
-  - You dislike having possibly multi-use -\_ suffixed type variables in your let declarations?
+  - The conventional way of naming type variables is used consistently 
+    in pretty much all existing elm code and is already familiar to elm folks
+  - you already use -/_ for separate reasons in some type variables
+  - since `let` declaration annotations may need to refer to types that are single-use in the module-scope declaration annotation, this review rule does not consider `let` type variables at all which might be confusing
 
 Ultimately, the solution to fix all three
 would be an editor extension that de-emphasizes (less contrast, ...) single-use type variables.

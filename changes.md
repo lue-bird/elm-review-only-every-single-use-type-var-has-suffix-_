@@ -1,5 +1,12 @@
 # changelog
 
+#### 2.0.4
+
+  - remove dependency `elm-community/list-extra`
+  - remove dependency `turboMaCk/non-empty-list-alias`
+  - TODO: fix bug where type variables that are keywords suffixed with underscore were reported as having unnecessary underscores
+  - faster
+
 #### 2.0.3
 
   - `elm-review` → >= 2.10.0
